@@ -91,6 +91,9 @@ The result is static:
 build/docs/
   index.html
   search-index.js            all searchable text, as a script
+  404.html                   only if the address of the site is known
+  sitemap.xml, robots.txt    likewise
+  .nojekyll, CNAME           only for GitHub Pages
   quick-start/quick-start.html
   guides/...
   api/dev.doctize.Doctize.html

@@ -47,9 +47,13 @@ public final class Views {
             List<TocItemView> toc,
             BreadcrumbView section,
             PagerLinkView previous,
-            PagerLinkView next) {}
+            PagerLinkView next,
+            String canonicalUrl) {}
 
     public record SectionCardView(String title, String description, String url, String pageLabel, List<NavItemView> pages) {}
+
+    /** The context of {@code not-found.mustache}. {@code basePath} is absolute, since the page is shown at any depth. */
+    public record NotFoundView(String basePath, ProjectView project) {}
 
     public record HomeView(String introHtml, List<SectionCardView> sections, ProjectView project, String startUrl) {}
 

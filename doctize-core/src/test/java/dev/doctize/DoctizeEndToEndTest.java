@@ -176,6 +176,73 @@ class DoctizeEndToEndTest {
     }
 
     @Test
+    void githubPagesOutputHasTheFilesGithubExpects() throws IOException {
+        GenerationReport report = builder().githubPages().baseUrl("https://acme.github.io/store").customDomain("docs.acme.dev").build().generate();
+
+        assertThat(report.warnings()).isEmpty();
+        assertThat(read(".nojekyll")).isEmpty();
+        assertThat(read("CNAME")).isEqualTo("docs.acme.dev\n");
+        assertThat(read("robots.txt")).contains("Sitemap: https://acme.github.io/store/sitemap.xml");
+        assertThat(read("sitemap.xml"))
+                .contains("<loc>https://acme.github.io/store/</loc>")
+                .contains("<loc>https://acme.github.io/store/setup/install.html</loc>")
+                .contains("<loc>https://acme.github.io/store/reference/com.acme.Store.html</loc>");
+        assertThat(read("setup/install.html"))
+                .contains("<link rel=\"canonical\" href=\"https://acme.github.io/store/setup/install.html\">");
+    }
+
+    @Test
+    void notFoundPageUsesAbsolutePathsSoItWorksAtAnyDepth() throws IOException {
+        builder().baseUrl("https://acme.github.io/store/").build().generate();
+
+        String notFound = read("404.html");
+
+        assertThat(notFound).contains("Page not found")
+                .contains("href=\"/store/assets/css/theme.css\"")
+                .contains("src=\"/store/search-index.js\"")
+                .contains("href=\"/store/index.html\"")
+                .contains("href=\"/store/setup/install.html\"")
+                .contains("basePath: \"/store/\"")
+                .doesNotContain("canonical");
+    }
+
+    @Test
+    void githubPagesAddressIsDerivedFromTheRepositoryOfTheProject() throws IOException {
+        Path config = dir.resolve("doctize.yml");
+        Files.writeString(config, "project:\n  repository: https://github.com/Acme/store\nhosting:\n  githubPages: true\n");
+
+        GenerationReport report = builder().configFile(config).build().generate();
+
+        assertThat(report.warnings()).isEmpty();
+        assertThat(read("robots.txt")).contains("https://acme.github.io/store/sitemap.xml");
+        assertThat(output.resolve(".nojekyll")).exists();
+    }
+
+    @Test
+    void withoutAnAddressThereIsNo404OrSitemapAndGithubPagesUsersAreTold() {
+        GenerationReport plain = builder().build().generate();
+        assertThat(plain.warnings()).isEmpty();
+        assertThat(output.resolve("404.html")).doesNotExist();
+        assertThat(output.resolve("sitemap.xml")).doesNotExist();
+        assertThat(output.resolve(".nojekyll")).doesNotExist();
+
+        GenerationReport pages = builder().githubPages().build().generate();
+
+        assertThat(output.resolve(".nojekyll")).exists();
+        assertThat(output.resolve("CNAME")).doesNotExist();
+        assertThat(pages.warnings()).singleElement().asString().contains("address of the site is unknown").contains("hosting.baseUrl");
+    }
+
+    @Test
+    void anAddressAloneAddsTheSeoFilesButNothingSpecificToGithub() {
+        builder().baseUrl("https://docs.example.org/").build().generate();
+
+        assertThat(output.resolve("404.html")).exists();
+        assertThat(output.resolve("sitemap.xml")).exists();
+        assertThat(output.resolve(".nojekyll")).doesNotExist();
+    }
+
+    @Test
     void reportsAnEmptyProjectClearly() {
         assertThatThrownBy(() -> Doctize.builder().output(output).build().generate())
                 .isInstanceOf(DoctizeException.class)

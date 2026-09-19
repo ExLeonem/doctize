@@ -36,6 +36,18 @@ final class GenerateCommand implements Callable<Integer> {
     @Option(names = {"-o", "--output"}, description = "Output directory. Default: ${DEFAULT-VALUE}.", defaultValue = "build/docs")
     private Path output;
 
+    @Option(names = "--github-pages", description = "Prepare the output for GitHub Pages (.nojekyll, CNAME).")
+    private boolean githubPages;
+
+    @Option(
+            names = "--base-url",
+            description = "The address the site will be published at, e.g. https://acme.github.io/project/. "
+                    + "Enables 404.html, sitemap.xml, robots.txt and canonical links.")
+    private String baseUrl;
+
+    @Option(names = "--cname", description = "The custom domain of a GitHub Pages site, e.g. docs.acme.dev.")
+    private String customDomain;
+
     @Option(names = "--serve", description = "Serve the generated site on http://localhost:<port> afterwards.")
     private boolean serve;
 
@@ -71,6 +83,15 @@ final class GenerateCommand implements Callable<Integer> {
         }
         if (theme != null) {
             builder.theme(theme);
+        }
+        if (githubPages) {
+            builder.githubPages();
+        }
+        if (baseUrl != null) {
+            builder.baseUrl(baseUrl);
+        }
+        if (customDomain != null) {
+            builder.customDomain(customDomain);
         }
         return builder;
     }

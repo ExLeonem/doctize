@@ -14,7 +14,7 @@ class SiteAssemblerTest {
     }
 
     private static Site assemble(List<SectionSpec> sections, Page... pages) {
-        DoctizeConfig config = new DoctizeConfig(null, null, sections, null, null, null);
+        DoctizeConfig config = new DoctizeConfig(null, null, sections, null, null, null, null);
         return new SiteAssembler(config).assemble(List.of(pages), "");
     }
 

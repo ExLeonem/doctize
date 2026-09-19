@@ -53,6 +53,14 @@ class ConfigLoaderTest {
     }
 
     @Test
+    void readsHostingSettings() throws IOException {
+        DoctizeConfig config = load("hosting:\n  baseUrl: https://a.org/x/\n  githubPages: true\n  customDomain: docs.a.org\n");
+
+        assertThat(config.hosting()).isEqualTo(new dev.doctize.hosting.HostingSettings("https://a.org/x/", true, "docs.a.org"));
+        assertThat(DoctizeConfig.defaults().hosting()).isEqualTo(dev.doctize.hosting.HostingSettings.none());
+    }
+
+    @Test
     void sectionsMayBeWrittenAsPlainTitles() throws IOException {
         DoctizeConfig config = load("sections:\n  - Quick start\n  - id: faq\n");
 

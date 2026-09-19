@@ -31,6 +31,11 @@ tasks.register<JavaExec>("generateDocs") {
     inputs.file("doctize.yml")
     outputs.dir(site)
 
+    // Extra arguments: ./gradlew generateDocs -PdoctizeArgs="--github-pages --base-url https://..."
+    val extraArguments = providers.gradleProperty("doctizeArgs").map { it.trim().split(Regex("\\s+")) }.orElse(emptyList())
+    inputs.property("doctizeArgs", extraArguments)
+    argumentProviders.add(CommandLineArgumentProvider { extraArguments.get() })
+
     classpath = doctizeTool
     mainClass = "dev.doctize.cli.DoctizeCli"
     javaLauncher = javaToolchains.launcherFor(java.toolchain)   // must be JDK 25 or newer
@@ -39,7 +44,8 @@ tasks.register<JavaExec>("generateDocs") {
 }
 ```
 
-Declaring `inputs` and `outputs` makes Gradle skip the task when nothing changed.
+Declaring `inputs` and `outputs` makes Gradle skip the task when nothing changed. The `doctizeArgs` property lets you
+add arguments to a single run, for example the options of [Publishing to GitHub Pages](05-github-pages.md).
 
 ## Several modules
 

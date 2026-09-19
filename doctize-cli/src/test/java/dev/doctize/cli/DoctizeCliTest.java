@@ -88,6 +88,56 @@ class DoctizeCliTest {
     }
 
     @Test
+    void generateCanPrepareTheOutputForGithubPages() throws IOException {
+        Path output = dir.resolve("site");
+
+        Result result = run("generate", "--model", writeModel().toString(), "--output", output.toString(),
+                "--github-pages", "--base-url", "https://acme.github.io/store", "--cname", "docs.acme.dev");
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.err()).isEmpty();
+        assertThat(output.resolve(".nojekyll")).exists();
+        assertThat(Files.readString(output.resolve("CNAME"))).isEqualTo("docs.acme.dev\n");
+        assertThat(Files.readString(output.resolve("404.html"))).contains("href=\"/store/index.html\"");
+    }
+
+    @Test
+    void generateWarnsWhenGithubPagesIsRequestedButTheAddressIsUnknown() throws IOException {
+        Result result = run("generate", "--model", writeModel().toString(), "--output", dir.resolve("site").toString(), "--github-pages");
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.err()).contains("doctize: warning:").contains("address of the site is unknown");
+    }
+
+    @Test
+    void generateRejectsAnInvalidBaseUrl() throws IOException {
+        Result result = run("generate", "--model", writeModel().toString(), "--output", dir.resolve("site").toString(), "--base-url", "not a url");
+
+        assertThat(result.exitCode()).isEqualTo(1);
+        assertThat(result.err()).contains("base URL");
+    }
+
+    @Test
+    void initCanCreateAGithubPagesWorkflow() throws IOException {
+        Path project = dir.resolve("lib");
+        Files.createDirectories(project);
+
+        Result init = run("init", project.toString(), "--github-pages");
+        String workflow = Files.readString(project.resolve(".github/workflows/docs.yml"));
+
+        assertThat(init.exitCode()).isZero();
+        assertThat(workflow).contains("actions/deploy-pages").contains("actions/upload-pages-artifact").contains("--github-pages");
+        assertThat(Files.readString(project.resolve("doctize.yml"))).contains("githubPages: true").contains("# repository: ");
+        assertThat(run("init", dir.resolve("plain").toString()).exitCode()).isZero();
+        assertThat(dir.resolve("plain/.github")).doesNotExist();
+
+        Result generate = run("generate", "--config", project.resolve("doctize.yml").toString(), "--output", project.resolve("out").toString());
+        assertThat(generate.exitCode()).isZero();
+        assertThat(generate.err()).contains("address of the site is unknown");
+        assertThat(project.resolve("out/.nojekyll")).exists();
+    }
+
+    @Test
     void initRefusesToOverwriteAnExistingConfig() throws IOException {
         Files.writeString(dir.resolve("doctize.yml"), "project: {name: keep}");
 

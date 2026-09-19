@@ -219,12 +219,25 @@ my-theme/
 * Every page gets `layout.mustache` with `project`, `theme`, `navigation`, `toc`, `previous`, `next`,
   `section`, `title`, `contentHtml` and `basePath`. The body comes from `guide`, `api-type` or `home`.
 
+## Publishing to GitHub Pages
+
+```console
+$ doctize init --github-pages                 # adds hosting settings and .github/workflows/docs.yml
+$ doctize generate --github-pages --base-url https://acme.github.io/cache/
+```
+
+`--github-pages` writes `.nojekyll` (and `CNAME` for `--cname docs.acme.dev`). Once the address of the site is known
+(from `--base-url`, a custom domain, or `project.repository`) Doctize also writes a `404.html` that works at any depth,
+`sitemap.xml`, `robots.txt` and canonical links. The workflow in `.github/workflows/docs.yml` publishes this repository's
+own documentation; see the guide *Publishing to GitHub Pages* in the generated docs.
+
 ## Command line
 
 ```
 doctize generate [-c doctize.yml] [-m <classes-dir|model.json|jar>]... [-g docs] [-t theme]
-                 [-o build/docs] [--serve [--port 8080]]
-doctize init [dir] [--name "My Library"]
+                 [-o build/docs] [--github-pages] [--base-url <url>] [--cname <domain>]
+                 [--serve [--port 8080]]
+doctize init [dir] [--name "My Library"] [--github-pages]
 ```
 
 `generate` uses `./doctize.yml` when it exists; options override the file. The output directory is

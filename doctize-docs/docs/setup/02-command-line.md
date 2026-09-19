@@ -15,7 +15,8 @@ $ doctize generate --help
 Builds the site.
 
 ```console
-doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [-o <dir>] [--serve [--port <n>]]
+doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [-o <dir>]
+                 [--github-pages] [--base-url <url>] [--cname <domain>] [--serve [--port <n>]]
 ```
 
 | Option | Meaning |
@@ -25,11 +26,20 @@ doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [-o <dir>] 
 | `-g`, `--guides` | The directory with Markdown guides. Overrides `guides` in the configuration. |
 | `-t`, `--theme` | A custom theme directory. Overrides `theme.path`. |
 | `-o`, `--output` | The output directory. Default `build/docs`. |
+| `--github-pages` | Prepares the output for GitHub Pages: writes `.nojekyll`, and `CNAME` if a domain is set. See [Publishing to GitHub Pages](05-github-pages.md). |
+| `--base-url` | The address the site will be published at, e.g. `https://acme.github.io/cache/`. Enables `404.html`, `sitemap.xml`, `robots.txt` and canonical links. |
+| `--cname` | The custom domain of a GitHub Pages site, e.g. `docs.acme.dev`. |
 | `--serve` | Serves the result on `http://localhost:<port>/` until you press Ctrl+C. |
 | `--port` | The port for `--serve`. Default `8080`. |
 
 Options given on the command line win over the configuration file. Relative paths in the *file* are
 resolved against the directory of the file; relative paths on the command line against the working directory.
+
+### Warnings
+
+Problems that do not stop the site from being generated are printed to standard error as `doctize: warning: ...` and
+do not change the exit code. Doctize warns about `{@link}` tags that point to no documented type or member (links to
+JDK classes are not checked), and about GitHub Pages options that lack an address.
 
 ### The output directory is safe
 
@@ -50,8 +60,11 @@ point `--output` at a directory with other files in it, those files are left alo
 Creates a starter setup.
 
 ```console
-doctize init [<directory>] [--name <project name>]
+doctize init [<directory>] [--name <project name>] [--github-pages]
 ```
 
 It writes a `doctize.yml`, a home page introduction (`docs/index.md`) and two example guides (one in "Quick start",
 one in "Setup") into the directory (default: the current one). It refuses to overwrite an existing `doctize.yml`.
+
+With `--github-pages` it also adds a `hosting` block to `doctize.yml` and a GitHub Actions workflow,
+`.github/workflows/docs.yml`, that publishes the site; see [Publishing to GitHub Pages](05-github-pages.md).

@@ -23,7 +23,7 @@ class ThemeTest {
         Theme theme = Theme.builtIn();
 
         for (String name : List.of(
-                "layout", "home", "guide", "api-type", "partials/head", "partials/header", "partials/sidebar",
+                "layout", "home", "guide", "api-type", "not-found", "partials/head", "partials/header", "partials/sidebar",
                 "partials/toc", "partials/pager", "partials/footer", "partials/search", "partials/member",
                 "partials/parameters", "partials/tags")) {
             assertThat(theme.template(name)).as(name).isNotBlank();

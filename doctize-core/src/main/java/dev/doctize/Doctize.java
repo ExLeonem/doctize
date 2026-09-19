@@ -4,6 +4,9 @@ import dev.doctize.annotations.Doc;
 import dev.doctize.config.ConfigLoader;
 import dev.doctize.config.DoctizeConfig;
 import dev.doctize.config.SectionSpec;
+import dev.doctize.hosting.BaseUrl;
+import dev.doctize.hosting.HostingFiles;
+import dev.doctize.hosting.HostingSettings;
 import dev.doctize.markdown.CodeHighlighter;
 import dev.doctize.model.ModelLocator;
 import dev.doctize.model.SourceModel;
@@ -23,6 +26,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Generates a documentation site from the Javadoc of annotated types and from Markdown guides.
@@ -80,6 +84,9 @@ public final class Doctize {
         OutputDirectory output = new OutputDirectory(outputDirectory);
         output.prepare();
 
+        HostingSettings hosting = config.hosting();
+        Optional<BaseUrl> baseUrl = hosting.resolveBaseUrl(config.project().repository());
+
         List<String> extraCss = publishExtras(output, config.theme().extraCss());
         List<String> extraJs = publishExtras(output, config.theme().extraJs());
         publishThemeAssets(output, theme);
@@ -91,11 +98,22 @@ public final class Doctize {
         SiteWriter writer = new SiteWriter(
                 site,
                 renderer,
-                new LayoutFactory(site, config.theme(), extraCss, extraJs),
+                new LayoutFactory(site, config.theme(), extraCss, extraJs, baseUrl),
                 templates,
-                output);
+                output,
+                baseUrl);
         int pages = writer.write();
-        return new GenerationReport(pages, site.sections().size(), output.root(), renderer.warnings());
+        new HostingFiles(output, hosting, baseUrl).write(site);
+        return new GenerationReport(pages, site.sections().size(), output.root(), warnings(renderer, hosting, baseUrl));
+    }
+
+    private static List<String> warnings(PageRenderer renderer, HostingSettings hosting, Optional<BaseUrl> baseUrl) {
+        List<String> warnings = new ArrayList<>(renderer.warnings());
+        if (hosting.githubPages() && baseUrl.isEmpty()) {
+            warnings.add("The address of the site is unknown, so 404.html, sitemap.xml, robots.txt and canonical links were skipped."
+                    + " Set hosting.baseUrl, or project.repository to a github.com URL.");
+        }
+        return warnings;
     }
 
     private List<Page> collectPages(GuideDirectory guides) {
@@ -149,6 +167,9 @@ public final class Doctize {
         private Path guidesDirectory;
         private Path themeDirectory;
         private Path outputDirectory = Path.of("build", "docs");
+        private String baseUrl;
+        private Boolean githubPages;
+        private String customDomain;
 
         private Builder() {}
 
@@ -193,6 +214,33 @@ public final class Doctize {
         }
 
         /**
+         * Tells Doctize where the site will be published, e.g. {@code https://acme.github.io/cache/}. With a known
+         * address the output also contains a {@code 404.html} that works at any depth, {@code sitemap.xml},
+         * {@code robots.txt} and canonical links. Replaces {@code hosting.baseUrl} of the configuration file.
+         *
+         * @param baseUrl an absolute {@code http(s)} URL
+         */
+        public Builder baseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
+            return this;
+        }
+
+        /**
+         * Prepares the output for GitHub Pages: adds {@code .nojekyll}, so that GitHub publishes the files as they are.
+         * Unless {@link #baseUrl(String)} says otherwise, the address is derived from {@code project.repository}.
+         */
+        public Builder githubPages() {
+            this.githubPages = true;
+            return this;
+        }
+
+        /** The custom domain of a GitHub Pages site, e.g. {@code docs.acme.dev}; written to the {@code CNAME} file. */
+        public Builder customDomain(String domain) {
+            this.customDomain = domain;
+            return this;
+        }
+
+        /**
          * Declares a section in code. The declaration order is the navigation order; once any
          * section is declared here, the sections of the configuration file are ignored.
          */
@@ -216,11 +264,14 @@ public final class Doctize {
         }
 
         private DoctizeConfig effectiveConfig() {
-            if (sections.isEmpty()) {
-                return config;
-            }
             return new DoctizeConfig(
-                    config.project(), config.theme(), sections, config.guides(), config.defaultSection(), config.api());
+                    config.project(),
+                    config.theme(),
+                    sections.isEmpty() ? config.sections() : sections,
+                    config.guides(),
+                    config.defaultSection(),
+                    config.api(),
+                    config.hosting().overriddenBy(baseUrl, githubPages, customDomain));
         }
     }
 }

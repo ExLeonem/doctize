@@ -2,6 +2,7 @@ package dev.doctize.render;
 
 import dev.doctize.config.ProjectInfo;
 import dev.doctize.config.ThemeSettings;
+import dev.doctize.hosting.BaseUrl;
 import dev.doctize.markdown.TocEntry;
 import dev.doctize.render.Views.BreadcrumbView;
 import dev.doctize.render.Views.HomeView;
@@ -9,6 +10,7 @@ import dev.doctize.render.Views.LayoutView;
 import dev.doctize.render.Views.NavGroupView;
 import dev.doctize.render.Views.NavItemView;
 import dev.doctize.render.Views.NavSectionView;
+import dev.doctize.render.Views.NotFoundView;
 import dev.doctize.render.Views.PagerLinkView;
 import dev.doctize.render.Views.ProjectView;
 import dev.doctize.render.Views.SectionCardView;
@@ -21,6 +23,7 @@ import dev.doctize.site.SitePage;
 import dev.doctize.site.Urls;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /** Builds the data for the frame around a page: navigation, table of contents, previous/next links. */
 public final class LayoutFactory {
@@ -30,10 +33,16 @@ public final class LayoutFactory {
     private final Site site;
     private final ProjectView project;
     private final ThemeView theme;
+    private final Optional<BaseUrl> baseUrl;
 
-    /** @param extraCss URLs of extra stylesheets relative to the site root; likewise {@code extraJs} */
-    public LayoutFactory(Site site, ThemeSettings settings, List<String> extraCss, List<String> extraJs) {
+    /**
+     * @param extraCss URLs of extra stylesheets relative to the site root; likewise {@code extraJs}
+     * @param baseUrl the address the site is published at, if known; enables canonical links and the 404 page
+     */
+    public LayoutFactory(
+            Site site, ThemeSettings settings, List<String> extraCss, List<String> extraJs, Optional<BaseUrl> baseUrl) {
         ProjectInfo info = site.project();
+        this.baseUrl = baseUrl;
         this.site = site;
         this.project = new ProjectView(info.name(), info.tagline(), info.version(), info.repository(), info.footer());
         this.theme = new ThemeView(settings.accent(), extraCss, extraJs, settings.options());
@@ -57,7 +66,8 @@ public final class LayoutFactory {
                 rendered.toc().stream().map(LayoutFactory::tocItem).toList(),
                 breadcrumb(page),
                 index > 0 ? pagerLink(reading.get(index - 1)) : null,
-                index < reading.size() - 1 ? pagerLink(reading.get(index + 1)) : null);
+                index < reading.size() - 1 ? pagerLink(reading.get(index + 1)) : null,
+                baseUrl.map(base -> base.resolve(page.url())).orElse(""));
     }
 
     public LayoutView forHome(String contentHtml) {
@@ -75,7 +85,32 @@ public final class LayoutFactory {
                 List.of(),
                 null,
                 null,
-                null);
+                null,
+                baseUrl.map(BaseUrl::value).orElse(""));
+    }
+
+    /** The frame of the 404 page: its links are absolute paths, because the page is shown at any depth. */
+    public LayoutView forNotFound(BaseUrl base, String contentHtml) {
+        return new LayoutView(
+                "Page not found · " + project.name(),
+                "Page not found",
+                "",
+                base.pathPrefix(),
+                "404.html",
+                false,
+                contentHtml,
+                project,
+                theme,
+                navigation(null),
+                List.of(),
+                null,
+                null,
+                null,
+                "");
+    }
+
+    public NotFoundView notFoundView(BaseUrl base) {
+        return new NotFoundView(base.pathPrefix(), project);
     }
 
     public HomeView homeView(String introHtml) {

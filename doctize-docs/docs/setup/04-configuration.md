@@ -39,6 +39,11 @@ sections:
 api:
   section: API Reference
   includeUndocumented: true
+
+hosting:
+  githubPages: true
+  baseUrl: https://acme.github.io/acme-cache/
+  customDomain: docs.acme.dev
 ```
 
 Relative paths (`theme.path`, `extraCss`, `extraJs`, `guides`) are resolved against the directory that
@@ -94,3 +99,15 @@ See {@link ApiSettings}.
 |-----|---------|---------|
 | `section` | `API Reference` | The section for `@Doc` types that do not name one. |
 | `includeUndocumented` | `true` | Whether members without a doc comment are listed. |
+
+## hosting
+
+Where and how the site is published; see [Publishing to GitHub Pages](05-github-pages.md) and {@link HostingSettings}.
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| `baseUrl` | derived, see below | The address the site is published at, e.g. `https://acme.github.io/acme-cache/`. Enables `404.html`, `sitemap.xml`, `robots.txt` and canonical links. |
+| `githubPages` | `false` | Prepares the output for GitHub Pages: writes `.nojekyll` (and `CNAME` for a custom domain). |
+| `customDomain` | none | A host name such as `docs.acme.dev` for a GitHub Pages site. |
+
+If `baseUrl` is not set, the address is `https://<customDomain>/`, or, with `githubPages`, derived from `project.repository`.

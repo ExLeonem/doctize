@@ -2,7 +2,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{documentTitle}}</title>
 {{#description}}<meta name="description" content="{{description}}">
-{{/description}}<link rel="icon" href="{{basePath}}assets/img/favicon.svg" type="image/svg+xml">
+{{/description}}{{#canonicalUrl}}<link rel="canonical" href="{{canonicalUrl}}">
+<meta property="og:url" content="{{canonicalUrl}}">
+{{/canonicalUrl}}<meta property="og:type" content="website">
+<meta property="og:title" content="{{documentTitle}}">
+<link rel="icon" href="{{basePath}}assets/img/favicon.svg" type="image/svg+xml">
 <script>
   /* Apply the stored colour scheme before first paint to avoid a flash. */
   try {

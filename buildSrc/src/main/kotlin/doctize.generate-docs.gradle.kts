@@ -27,6 +27,11 @@ tasks.register<JavaExec>("generateDocs") {
     inputs.file("doctize.yml")
     outputs.dir(outputDirectory)
 
+    // Extra command line arguments, e.g. ./gradlew generateDocs -PdoctizeArgs="--github-pages --base-url https://..."
+    val extraArguments = providers.gradleProperty("doctizeArgs").map { it.trim().split(Regex("\\s+")) }.orElse(emptyList())
+    inputs.property("doctizeArgs", extraArguments)
+    argumentProviders.add(CommandLineArgumentProvider { extraArguments.get() })
+
     classpath = doctizeTool
     mainClass = "dev.doctize.cli.DoctizeCli"
     javaLauncher = javaToolchains.launcherFor(java.toolchain)
