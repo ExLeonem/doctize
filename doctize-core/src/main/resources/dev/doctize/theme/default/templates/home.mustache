@@ -1,0 +1,25 @@
+      <section class="hero">
+        <h1>{{project.name}}</h1>{{#project.tagline}}
+        <p class="lead">{{project.tagline}}</p>{{/project.tagline}}
+        <div class="hero-actions">{{#startUrl}}
+          <a class="button primary" href="{{startUrl}}">Get started</a>{{/startUrl}}
+          <button class="button" type="button" data-search-open>Search the docs</button>
+        </div>
+      </section>{{#introHtml}}
+      <div class="prose intro">
+{{{introHtml}}}
+      </div>{{/introHtml}}
+      <section class="cards" aria-label="Sections">
+{{#sections}}
+        <div class="card">
+          <h2><a class="card-link" href="{{url}}">{{title}}</a></h2>{{#description}}
+          <p>{{description}}</p>{{/description}}
+          <ul>
+{{#pages}}
+            <li><a href="{{url}}">{{title}}</a></li>
+{{/pages}}
+          </ul>
+          <span class="card-meta">{{pageLabel}}</span>
+        </div>
+{{/sections}}
+      </section>

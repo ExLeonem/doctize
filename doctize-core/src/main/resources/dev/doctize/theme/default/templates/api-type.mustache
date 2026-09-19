@@ -1,0 +1,18 @@
+      <header class="doc-header">
+        <div class="kicker"><span class="kind kind-{{kind}}">{{kind}}</span><span class="package">{{packageName}}</span></div>
+        <h1>{{title}}</h1>
+      </header>
+{{#deprecated}}      <div class="callout deprecated"><strong>Deprecated.</strong> {{{html}}}</div>
+{{/deprecated}}      <pre class="signature"><code>{{{signatureHtml}}}</code></pre>{{#descriptionHtml}}
+      <div class="prose">
+{{{descriptionHtml}}}
+      </div>{{/descriptionHtml}}
+{{> partials/parameters}}{{> partials/tags}}
+{{#groups}}
+      <section class="member-group" id="{{id}}">
+        <h2>{{title}}<a class="anchor" href="#{{id}}" aria-label="Permalink">#</a></h2>
+{{#members}}
+{{> partials/member}}
+{{/members}}
+      </section>
+{{/groups}}

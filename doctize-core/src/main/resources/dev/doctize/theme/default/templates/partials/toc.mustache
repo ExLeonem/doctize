@@ -1,0 +1,6 @@
+  <aside class="toc{{^toc}} is-empty{{/toc}}" aria-label="On this page">
+{{#toc}}{{#-first}}    <div class="toc-title">On this page</div>
+    <ul>
+{{/-first}}      <li{{#nested}} class="nested"{{/nested}}><a href="#{{id}}">{{text}}</a></li>
+{{#-last}}    </ul>
+{{/-last}}{{/toc}}  </aside>

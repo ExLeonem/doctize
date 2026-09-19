@@ -1,0 +1,31 @@
+# Configuration of the example site. Every setting is optional.
+
+project:
+  name: Acme Cache
+  tagline: A small, fast, bounded in-memory cache for Java.
+  version: 1.2.0
+  repository: https://github.com/acme/acme-cache
+  footer: © 2026 Acme Corp. Released under the Apache License 2.0.
+
+# Directory with Markdown guides. A sub-directory is a section, e.g. docs/setup/ → "Setup".
+guides: docs
+
+# The structure of the site: the order of this list is the order of the navigation.
+# Sections used by a page but missing here (see docs/recipes/) are appended at the end.
+sections:
+  - id: quick-start
+    title: Quick start
+    description: Add the dependency and cache your first value in five minutes.
+  - id: setup
+    title: Setup
+    description: Requirements, installation and configuration.
+  - id: guides
+    title: Guides
+    description: Concepts and how-tos that go beyond the basics.
+  - id: api
+    title: API Reference
+    description: Every public type, generated from the Javadoc.
+
+api:
+  section: API Reference   # where @Doc types without a section go
+  includeUndocumented: true

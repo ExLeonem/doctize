@@ -1,0 +1,16 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{documentTitle}}</title>
+{{#description}}<meta name="description" content="{{description}}">
+{{/description}}<link rel="icon" href="{{basePath}}assets/img/favicon.svg" type="image/svg+xml">
+<script>
+  /* Apply the stored colour scheme before first paint to avoid a flash. */
+  try {
+    var stored = localStorage.getItem("doctize-theme");
+    if (stored === "light" || stored === "dark") document.documentElement.setAttribute("data-theme", stored);
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="{{basePath}}assets/css/theme.css">
+{{#theme}}{{#accent}}<style>:root { --accent: {{accent}}; }</style>
+{{/accent}}{{#extraCss}}<link rel="stylesheet" href="{{basePath}}{{.}}">
+{{/extraCss}}{{/theme}}

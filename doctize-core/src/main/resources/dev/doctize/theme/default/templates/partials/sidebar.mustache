@@ -1,0 +1,17 @@
+  <aside class="sidebar" id="sidebar">
+    <nav aria-label="Documentation">
+{{#navigation}}
+      <details class="nav-section"{{#current}} open{{/current}}{{#home}} open{{/home}}>
+        <summary>{{title}}</summary>
+{{#groups}}
+{{#label}}        <div class="nav-group">{{label}}</div>
+{{/label}}        <ul>
+{{#items}}
+          <li><a href="{{basePath}}{{url}}" class="{{#current}}is-current{{/current}}{{#deprecated}} is-deprecated{{/deprecated}}"{{#current}} aria-current="page"{{/current}}>{{title}}</a></li>
+{{/items}}
+        </ul>
+{{/groups}}
+      </details>
+{{/navigation}}
+    </nav>
+  </aside>

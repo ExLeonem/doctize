@@ -1,0 +1,25 @@
+        <article class="member" id="{{id}}">
+          <h3>
+            <code class="member-name">{{name}}</code>
+            <span class="kind">{{kind}}</span>{{#deprecated}}
+            <span class="kind kind-deprecated">deprecated</span>{{/deprecated}}
+            <a class="anchor" href="#{{id}}" aria-label="Permalink">#</a>
+          </h3>
+          <pre class="signature"><code>{{{signatureHtml}}}</code></pre>{{#deprecated}}
+          <div class="callout deprecated"><strong>Deprecated.</strong> {{{html}}}</div>{{/deprecated}}{{#descriptionHtml}}
+          <div class="prose">
+{{{descriptionHtml}}}
+          </div>{{/descriptionHtml}}
+{{> partials/parameters}}{{#returns}}
+          <div class="detail">
+            <h4>Returns</h4>
+            <p><code class="type">{{{typeHtml}}}</code>{{#descriptionHtml}} — {{{descriptionHtml}}}{{/descriptionHtml}}</p>
+          </div>{{/returns}}{{#throwsList}}{{#-first}}
+          <div class="detail">
+            <h4>Throws</h4>
+            <table class="detail-table"><tbody>{{/-first}}
+              <tr><td class="col-name"><code class="type">{{{typeHtml}}}</code></td><td>{{{descriptionHtml}}}</td></tr>{{#-last}}
+            </tbody></table>
+          </div>{{/-last}}{{/throwsList}}
+{{> partials/tags}}
+        </article>

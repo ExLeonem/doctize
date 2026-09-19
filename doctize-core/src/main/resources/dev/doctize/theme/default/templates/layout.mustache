@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{{> partials/head}}
+</head>
+<body{{#home}} class="page-home"{{/home}}>
+<a class="skip-link" href="#content">Skip to content</a>
+{{> partials/header}}
+<div class="shell">
+{{> partials/sidebar}}
+  <main id="content" class="main">
+    <article class="doc">
+{{#section}}      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{{basePath}}{{url}}">{{title}}</a></nav>
+{{/section}}
+{{{contentHtml}}}
+{{> partials/pager}}
+    </article>
+{{> partials/footer}}
+  </main>
+{{> partials/toc}}
+</div>
+<div class="scrim" data-nav-close></div>
+{{> partials/search}}
+<script>window.DOCTIZE = { basePath: "{{basePath}}" };</script>
+<script src="{{basePath}}search-index.js" defer></script>
+<script src="{{basePath}}assets/js/search-engine.js" defer></script>
+<script src="{{basePath}}assets/js/search-ui.js" defer></script>
+<script src="{{basePath}}assets/js/app.js" defer></script>
+{{#theme}}{{#extraJs}}<script src="{{basePath}}{{.}}" defer></script>
+{{/extraJs}}{{/theme}}
+</body>
+</html>
