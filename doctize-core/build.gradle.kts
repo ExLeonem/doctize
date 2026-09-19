@@ -1,6 +1,9 @@
 plugins {
     id("doctize.java-conventions")
+    id("doctize.publishing-conventions")
 }
+
+description = "Generates a searchable static documentation site from Javadoc and Markdown."
 
 dependencies {
     // The public API is annotated with @Doc so that Doctize can document itself (see doctize-docs).

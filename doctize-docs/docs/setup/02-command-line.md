@@ -16,7 +16,7 @@ Builds the site.
 
 ```console
 doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [-o <dir>]
-                 [--github-pages] [--base-url <url>] [--cname <domain>] [--serve [--port <n>]]
+                 [--github-pages] [--base-url <url>] [--cname <domain>] [--fail-on-warnings] [--serve [--port <n>]]
 ```
 
 | Option | Meaning |
@@ -29,6 +29,7 @@ doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [-o <dir>]
 | `--github-pages` | Prepares the output for GitHub Pages: writes `.nojekyll`, and `CNAME` if a domain is set. See [Publishing to GitHub Pages](05-github-pages.md). |
 | `--base-url` | The address the site will be published at, e.g. `https://acme.github.io/cache/`. Enables `404.html`, `sitemap.xml`, `robots.txt` and canonical links. |
 | `--cname` | The custom domain of a GitHub Pages site, e.g. `docs.acme.dev`. |
+| `--fail-on-warnings` | Exits with code `1` if generation produced any warning. Use it in CI so that a broken `{@link}` fails the build. |
 | `--serve` | Serves the result on `http://localhost:<port>/` until you press Ctrl+C. |
 | `--port` | The port for `--serve`. Default `8080`. |
 
@@ -38,7 +39,7 @@ resolved against the directory of the file; relative paths on the command line a
 ### Warnings
 
 Problems that do not stop the site from being generated are printed to standard error as `doctize: warning: ...` and
-do not change the exit code. Doctize warns about `{@link}` tags that point to no documented type or member (links to
+do not change the exit code, unless you pass `--fail-on-warnings`. Doctize warns about `{@link}` tags that point to no documented type or member (links to
 JDK classes are not checked), and about GitHub Pages options that lack an address.
 
 ### The output directory is safe

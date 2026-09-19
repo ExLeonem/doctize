@@ -1,0 +1,16 @@
+project:
+  name: Sample Shop
+  tagline: A tiny shopping cart used to test Doctize.
+  version: 1.0.0
+  repository: https://github.com/example/sample-shop
+
+guides: docs
+
+sections:
+  - id: quick-start
+    title: Quick start
+    description: Buy something in five lines.
+  - Setup
+  - Guides
+  - id: reference
+    title: Reference

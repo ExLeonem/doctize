@@ -1,6 +1,9 @@
 plugins {
     id("doctize.java-conventions")
+    id("doctize.publishing-conventions")
 }
+
+description = "An annotation processor that extracts the Javadoc of Doctize-annotated elements at compile time."
 
 dependencies {
     implementation(project(":doctize-annotations"))

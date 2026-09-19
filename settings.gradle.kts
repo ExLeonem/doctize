@@ -11,4 +11,5 @@ include(
     "doctize-cli",
     "doctize-docs",
     "doctize-example",
+    "doctize-tests",
 )

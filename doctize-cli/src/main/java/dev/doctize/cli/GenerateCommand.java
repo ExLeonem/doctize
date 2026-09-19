@@ -48,6 +48,9 @@ final class GenerateCommand implements Callable<Integer> {
     @Option(names = "--cname", description = "The custom domain of a GitHub Pages site, e.g. docs.acme.dev.")
     private String customDomain;
 
+    @Option(names = "--fail-on-warnings", description = "Exit with code 1 if generation produced warnings, e.g. unresolved links. For CI.")
+    private boolean failOnWarnings;
+
     @Option(names = "--serve", description = "Serve the generated site on http://localhost:<port> afterwards.")
     private boolean serve;
 
@@ -61,6 +64,10 @@ final class GenerateCommand implements Callable<Integer> {
             System.out.printf(
                     "Generated %d pages in %d sections → %s%n", report.pages(), report.sections(), report.outputDirectory());
             report.warnings().forEach(warning -> System.err.println("doctize: warning: " + warning));
+            if (failOnWarnings && !report.warnings().isEmpty()) {
+                System.err.println("doctize: failing because of " + report.warnings().size() + " warning(s), as requested by --fail-on-warnings");
+                return 1;
+            }
             if (serve) {
                 serve(report.outputDirectory());
             }

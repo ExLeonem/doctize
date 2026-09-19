@@ -8,7 +8,7 @@ import picocli.CommandLine.Command;
         name = "doctize",
         description = "Generates a documentation site from annotated Java code and Markdown guides.",
         mixinStandardHelpOptions = true,
-        version = "doctize 0.1.0",
+        versionProvider = CliVersion.class,
         subcommands = {GenerateCommand.class, InitCommand.class})
 public final class DoctizeCli implements Runnable {
 

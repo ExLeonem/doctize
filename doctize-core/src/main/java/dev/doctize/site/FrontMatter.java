@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 record FrontMatter(Map<String, Object> values, String body) {
 
-    private static final Pattern BLOCK = Pattern.compile("\\A---[ \\t]*\\R(.*?)\\R---[ \\t]*(?:\\R|\\z)", Pattern.DOTALL);
+    private static final Pattern BLOCK = Pattern.compile("\\A---[ \\t]*\\R(?:(.*?)\\R)?---[ \\t]*(?:\\R|\\z)", Pattern.DOTALL);
     private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
 
     static FrontMatter parse(String text, String fileName) {
@@ -31,7 +31,8 @@ record FrontMatter(Map<String, Object> values, String body) {
             return new FrontMatter(Map.of(), text);
         }
         try {
-            Map<String, Object> values = YAML.readValue(matcher.group(1), new TypeReference<>() {});
+            String yaml = matcher.group(1) == null ? "" : matcher.group(1);
+            Map<String, Object> values = yaml.isBlank() ? null : YAML.readValue(yaml, new TypeReference<>() {});
             return new FrontMatter(values == null ? Map.of() : values, text.substring(matcher.end()));
         } catch (JsonProcessingException e) {
             throw new DoctizeException("Invalid front matter in " + fileName + ": " + e.getOriginalMessage(), e);

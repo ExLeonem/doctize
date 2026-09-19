@@ -53,6 +53,14 @@ class DoctizeCliTest {
     }
 
     @Test
+    void versionComesFromTheBuildNotFromASourceLiteral() {
+        Result result = run("--version");
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.out().trim()).matches("doctize \\d+\\.\\d+\\.\\d+.*").doesNotContain("${version}").doesNotContain("unknown");
+    }
+
+    @Test
     void generateWritesTheSite() throws IOException {
         Path output = dir.resolve("site");
 
@@ -107,6 +115,23 @@ class DoctizeCliTest {
 
         assertThat(result.exitCode()).isZero();
         assertThat(result.err()).contains("doctize: warning:").contains("address of the site is unknown");
+    }
+
+    @Test
+    void failOnWarningsTurnsWarningsIntoAFailureButOnlyWhenAsked() throws IOException {
+        Path guides = dir.resolve("docs");
+        Files.createDirectories(guides);
+        Files.writeString(guides.resolve("page.md"), "# Page\n\nSee {@link Nowhere}.\n");
+
+        Result lenient = run("generate", "--guides", guides.toString(), "--output", dir.resolve("a").toString());
+        Result strict = run("generate", "--guides", guides.toString(), "--output", dir.resolve("b").toString(), "--fail-on-warnings");
+        Result clean = run("generate", "--model", writeModel().toString(), "--output", dir.resolve("c").toString(), "--fail-on-warnings");
+
+        assertThat(lenient.exitCode()).isZero();
+        assertThat(lenient.err()).contains("warning:").contains("Nowhere");
+        assertThat(strict.exitCode()).isEqualTo(1);
+        assertThat(strict.err()).contains("Nowhere").contains("--fail-on-warnings");
+        assertThat(clean.exitCode()).isZero();
     }
 
     @Test

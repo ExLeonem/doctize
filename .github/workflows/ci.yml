@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      # The tests of the search engine (JavaScript) run on Node.js.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Also validates the Gradle wrapper checksum.
+      - uses: gradle/actions/setup-gradle@v4
+      # Unit tests, integration tests, system tests (installed CLI + staged artifacts), the strict
+      # documentation build, and the version consistency check: everything `check` covers.
+      - name: Build
+        run: ./gradlew build --stacktrace
+      - name: Keep the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          retention-days: 14
+          path: |
+            **/build/reports/tests/
+            **/build/reports/jacoco/
+            **/build/test-results/
+      - name: Keep the generated documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          retention-days: 14
+          path: doctize-docs/build/docs
