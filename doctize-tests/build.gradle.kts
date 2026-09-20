@@ -27,6 +27,9 @@ dependencies {
         add("${suite}RuntimeOnly", libs.junit.platform.launcher)
     }
 
+    // Runs real Gradle builds that apply the published plugin.
+    "systemTestImplementation"(gradleTestKit())
+
     "integrationTestImplementation"(project(":doctize-core"))
     "integrationTestImplementation"(project(":doctize-annotations"))
     "integrationTestRuntimeOnly"(project(":doctize-processor"))

@@ -1,7 +1,7 @@
 # Releasing
 
-This document is for maintainers. A release publishes the four modules (`doctize-annotations`, `doctize-processor`,
-`doctize-core`, `doctize-cli`) to Maven Central and creates a GitHub release with the command line distribution.
+This document is for maintainers. A release publishes the five modules (`doctize-annotations`, `doctize-processor`,
+`doctize-core`, `doctize-cli`, `doctize-gradle-plugin`) to Maven Central and creates a GitHub release with the command line distribution.
 
 ## One-time setup
 
@@ -14,6 +14,10 @@ This document is for maintainers. A release publishes the four modules (`doctize
    `io.github.exleonem` (verified by creating a public repository with a given name in your GitHub account), and change
    `group` in `buildSrc/src/main/kotlin/doctize.java-conventions.gradle.kts`, the coordinates in the documentation
    (`grep -r "dev.doctize:" .`), and `PublishedArtifactsSystemTest`. The Java package names can stay as they are.
+   The Gradle plugin needs one more change: its *marker artifact*, which lets `plugins { id("dev.doctize") }` find it, is
+   published under the plugin id as its group. Change the id in the `gradlePlugin` block of
+   `doctize-gradle-plugin/build.gradle.kts` to one below your namespace, and update `GradlePluginSystemTest`, the marker
+   test in `PublishedArtifactsSystemTest` and the `id("dev.doctize")` snippets in the documentation.
 4. Under **Account → Generate User Token**, create a token. You get a username and a password: these are
    `CENTRAL_PORTAL_USERNAME` and `CENTRAL_PORTAL_PASSWORD`.
 

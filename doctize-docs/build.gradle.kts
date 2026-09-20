@@ -48,9 +48,12 @@ val verifyDocsVersion by tasks.registering {
             .firstOrNull { it.trim().startsWith("version:") }?.substringAfter(":")?.trim()
         check(declared == projectVersion) { "doctize.yml says version $declared, the project is $projectVersion" }
 
-        val coordinates = Regex("""dev\.doctize:doctize-[a-z]+:([0-9][^"'\s)]*)""")
+        // Dependency coordinates, and the plugin declarations: id("dev.doctize") version "x" and id 'dev.doctize' version 'x'.
+        val coordinates = Regex("""dev\.doctize:doctize-[a-z-]+:([0-9][^"'\s)]*)""")
+        val pluginDeclaration = Regex("""id\s*\(?\s*["']dev\.doctize["']\s*\)?\s+version\s+["']([^"']+)["']""")
         val wrong = guides.files.flatMap { file ->
-            coordinates.findAll(file.readText()).filter { it.groupValues[1] != projectVersion }.map { "${file.name}: ${it.value}" }
+            val text = file.readText()
+            (coordinates.findAll(text) + pluginDeclaration.findAll(text)).filter { it.groupValues[1] != projectVersion }.map { "${file.name}: ${it.value}" }.toList()
         }
         check(wrong.isEmpty()) { "Documentation names another version than $projectVersion:\n" + wrong.joinToString("\n") }
     }

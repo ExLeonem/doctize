@@ -6,6 +6,19 @@ All notable changes to Doctize are documented in this file. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- The Gradle plugin `dev.doctize` (`doctize-gradle-plugin`). In a Java project it adds the annotations and the annotation
+  processor, and the `generateDocs` task, which compiles the code and runs the command line tool on a Java 25 toolchain.
+  A `doctize { }` block, and the task options `--github-pages`, `--base-url`, `--custom-domain` and `--fail-on-warnings`,
+  configure it; `-PdoctizeArgs` still works. Several modules are documented as one site with `modules(...)`.
+  The plugin runs on Gradle 9 with a JDK 17 or newer.
+- The version check of the documentation also covers plugin declarations (`id("dev.doctize") version "..."`).
+
+### Changed
+
+- The guide *Running from Gradle* describes the plugin; the `JavaExec` task it used to show remains as an alternative.
+
 ## [0.1.0]
 
 The first release.

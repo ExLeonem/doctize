@@ -9,6 +9,7 @@ include(
     "doctize-core",
     "doctize-processor",
     "doctize-cli",
+    "doctize-gradle-plugin",
     "doctize-docs",
     "doctize-example",
     "doctize-tests",

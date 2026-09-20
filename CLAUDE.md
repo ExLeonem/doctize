@@ -31,7 +31,7 @@ Extra CLI args for `generateDocs`: `-PdoctizeArgs="--github-pages --base-url htt
 - Compiler runs with `-Xlint:all -Werror`: **any warning fails the build**.
 - The project version lives only in `gradle.properties`. `doctize-docs:verifyDocsVersion` fails if `doctize-docs/doctize.yml` or any `dev.doctize:doctize-*:<version>` snippet in `doctize-docs/docs` names a different version. Release steps are in `RELEASING.md`; add changes under "Unreleased" in `CHANGELOG.md`.
 - `doctize-annotations` must stay dependency-free. Public types in the documented modules carry `@Doc` (with `group` and `order`) because the project documents itself.
-- Published modules: `doctize-annotations`, `doctize-processor`, `doctize-core`, `doctize-cli`. The root `build.gradle.kts` stages them into `build/staging-deploy` and builds the Maven Central bundle (`stageArtifacts`, `centralBundle`).
+- Published modules: `doctize-annotations`, `doctize-processor`, `doctize-core`, `doctize-cli`, `doctize-gradle-plugin`. The root `build.gradle.kts` stages them into `build/staging-deploy` and builds the Maven Central bundle (`stageArtifacts`, `centralBundle`).
 
 ## Architecture
 
@@ -49,7 +49,10 @@ Pipeline (details in `doctize-docs/docs/guides/07-how-it-works.md`):
   - `search` – builds `search-index.js`; the search engine itself is JS in the theme assets (`search-engine.js`, `search-ui.js`) and is tested from Node in the integration tests
   - `output`/`hosting` – `SiteWriter`; output dir is only cleaned if it contains the `.doctize-site` marker; GitHub Pages files (`.nojekyll`, `404.html`, sitemap)
 - `doctize-cli` – picocli wrapper (`generate`, `init`) around `Doctize`.
+- `doctize-gradle-plugin` – the `dev.doctize` Gradle plugin (`DoctizePlugin`, `doctize { }` extension, `DoctizeGenerate` task). It does **not** depend on `doctize-core`: the task runs the published `doctize-cli` in a separate process on a Java 25 toolchain (`doctizeTool` configuration), and `CliArguments` is the one place that knows the CLI's command line. The module is compiled with `--release 17` (Gradle's JVM may be older than 25) and must stay so. `java-gradle-plugin` adds its own publications, incl. a marker artifact `dev.doctize.gradle.plugin`; `doctize.publishing-conventions` handles that and signs every publication. Unit tests use `ProjectBuilder`; `GradlePluginSystemTest` runs real builds through TestKit against the staged artifacts.
 - Output URLs are relative to the site root (`{{basePath}}` in templates) so the site works from `file://` and under any sub-path — keep this invariant when touching links.
+
+`doctize-docs` and `doctize-example` use the internal `doctize.generate-docs` convention (a `JavaExec` on `:doctize-cli`), not the plugin: a plugin cannot be applied in the build that produces it. Keep `doctize-docs/docs/setup/03-gradle.md` in step with the plugin's settings; `verifyDocsVersion` also checks `id("dev.doctize") version "..."` snippets.
 
 ### Self-documentation quirk
 
@@ -58,6 +61,6 @@ The processor depends on `doctize-core`/`doctize-annotations`, so it cannot run 
 ### Test layout
 
 - Unit: `src/test` per module.
-- `doctize-tests/src/integrationTest` and `src/systemTest` are custom source sets sharing helpers in `src/support` (`SiteCrawler` verifies a generated site has no broken link/asset/anchor — use it when changing links or output layout; `Javac`, `Processes`). Sample libraries are under `integrationTest/resources` (`sample-shop`, `sample-payments`) and are reused by system tests.
+- `doctize-tests/src/integrationTest` and `src/systemTest` (which also has TestKit for the Gradle plugin) are custom source sets sharing helpers in `src/support` (`SiteCrawler` verifies a generated site has no broken link/asset/anchor — use it when changing links or output layout; `Javac`, `Processes`). Sample libraries are under `integrationTest/resources` (`sample-shop`, `sample-payments`) and are reused by system tests.
 - System tests consume the *staged* artifacts from `build/staging-deploy` (a Maven repo) and the installed CLI, so they depend on `stageArtifacts` and `:doctize-cli:installDist`.
 - Put a regression test at the lowest level that can show the bug; unit test names describe behaviour, not methods.

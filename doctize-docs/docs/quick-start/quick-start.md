@@ -18,6 +18,22 @@ generated from your Javadoc and a guide you wrote yourself.
 ## 1. Add the annotations and the processor
 
 The annotations are only needed while your code compiles, and the processor extracts your Javadoc.
+With Gradle, the plugin adds both, and the task that generates the site in step 4 as well
+(see [Running from Gradle](../setup/03-gradle.md) for the plugin repository you need in `settings.gradle.kts`):
+
+```kotlin tab="Gradle plugin (Kotlin)"
+plugins {
+    `java-library`
+    id("dev.doctize") version "0.1.0"
+}
+```
+
+```groovy tab="Gradle plugin (Groovy)"
+plugins {
+    id 'java-library'
+    id 'dev.doctize' version '0.1.0'
+}
+```
 
 ```kotlin tab="Gradle (Kotlin)"
 dependencies {
@@ -114,6 +130,10 @@ Serving at http://localhost:8080/ (Ctrl+C to stop)
 
 Open <http://localhost:8080/>. Press <kbd>/</kbd> and search for "greet": the result leads directly to the
 `greet()` method of the `Greeter` page.
+
+With the Gradle plugin, run `./gradlew generateDocs` instead. It compiles your code and writes the site to `build/docs`; open
+`build/docs/index.html`, which works straight from the file system. The plugin does not serve the site and does not scaffold
+it: create `doctize.yml` and `docs/` with `doctize init` as above, or by hand.
 
 ## Where to go next
 

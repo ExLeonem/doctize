@@ -68,7 +68,7 @@ class PublishedArtifactsSystemTest {
             java.util.Map.of("md5", "MD5", "sha1", "SHA-1", "sha256", "SHA-256", "sha512", "SHA-512");
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli"})
+    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
     void everyModuleShipsAllTheFilesCentralRequiresWithCorrectChecksums(String module) throws Exception {
         for (String suffix : List.of(".jar", "-sources.jar", "-javadoc.jar", ".pom", ".module")) {
             Path artifact = file(module, suffix);
@@ -84,7 +84,7 @@ class PublishedArtifactsSystemTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli"})
+    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
     void thePomCarriesTheMetadataCentralRequires(String module) throws Exception {
         Document pom = pom(module);
 
@@ -129,11 +129,12 @@ class PublishedArtifactsSystemTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli"})
+    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
     void jarsAreIdentifiedReproducibleAndCarryTheLicense(String module) throws Exception {
         Path jar = file(module, ".jar");
 
-        assertThat(manifest(jar, "Automatic-Module-Name")).isEqualTo("dev.doctize." + module);
+        // "dev.doctize.gradle-plugin" would not be a valid module name.
+        assertThat(manifest(jar, "Automatic-Module-Name")).isEqualTo(module.equals("gradle-plugin") ? "dev.doctize.gradle" : "dev.doctize." + module);
         assertThat(manifest(jar, "Implementation-Version")).isEqualTo(VERSION);
         assertThat(entries(jar)).contains("META-INF/LICENSE");
         try (JarFile file = new JarFile(jar.toFile())) {
@@ -176,6 +177,46 @@ class PublishedArtifactsSystemTest {
     }
 
     @Test
+    void theGradlePluginIsFoundByItsIdAndCompiledForTheJavaThatRunsGradle() throws Exception {
+        Path jar = file("gradle-plugin", ".jar");
+
+        assertThat(entries(jar)).contains("dev/doctize/gradle/DoctizePlugin.class", "META-INF/gradle-plugins/dev.doctize.properties");
+        try (JarFile file = new JarFile(jar.toFile())) {
+            assertThat(new String(file.getInputStream(file.getEntry("META-INF/gradle-plugins/dev.doctize.properties")).readAllBytes()))
+                    .contains("implementation-class=dev.doctize.gradle.DoctizePlugin");
+            assertThat(new String(file.getInputStream(file.getEntry("dev/doctize/gradle/version.properties")).readAllBytes()).trim())
+                    .isEqualTo("version=" + VERSION);
+            byte[] header = file.getInputStream(file.getEntry("dev/doctize/gradle/DoctizePlugin.class")).readNBytes(8);
+            assertThat(((header[6] & 0xff) << 8) | (header[7] & 0xff)).as("class file major version: Gradle needs to run on 17, not 25").isEqualTo(61);
+        }
+        assertThat(dependencies("gradle-plugin")).as("the plugin needs no library: it drives the tool in a separate process").isEmpty();
+    }
+
+    @Test
+    void theMarkerArtifactLetsGradleResolveThePluginById() throws Exception {
+        Path directory = STAGING.resolve("dev/doctize/dev.doctize.gradle.plugin/" + VERSION);
+        Path markerPom = directory.resolve("dev.doctize.gradle.plugin-" + VERSION + ".pom");
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        Document pom;
+        try (InputStream in = Files.newInputStream(markerPom)) {
+            pom = factory.newDocumentBuilder().parse(in);
+        }
+
+        assertThat(xpath(pom, "/project/dependencies/dependency/groupId")).isEqualTo("dev.doctize");
+        assertThat(xpath(pom, "/project/dependencies/dependency/artifactId")).isEqualTo("doctize-gradle-plugin");
+        assertThat(xpath(pom, "/project/dependencies/dependency/version")).isEqualTo(VERSION);
+        for (String required : List.of("/project/name", "/project/description", "/project/url", "/project/licenses/license/name",
+                "/project/developers/developer/name", "/project/scm/url")) {
+            assertThat(xpath(pom, required)).as(required).isNotBlank().doesNotContain("null");
+        }
+        assertThat(Path.of(markerPom + ".sha512")).exists();
+        if (Boolean.getBoolean("doctize.signed")) {
+            assertThat(Path.of(markerPom + ".asc")).as("Central rejects unsigned files, the marker included").exists().isNotEmptyFile();
+        }
+    }
+
+    @Test
     void theCliJarKnowsItsOwnVersion() throws IOException {
         try (JarFile file = new JarFile(file("cli", ".jar").toFile())) {
             String properties = new String(file.getInputStream(file.getEntry("dev/doctize/cli/version.properties")).readAllBytes());
@@ -185,7 +226,7 @@ class PublishedArtifactsSystemTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli"})
+    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
     void sourcesAndJavadocAreReallyThere(String module) throws IOException {
         assertThat(entries(file(module, "-sources.jar"))).anyMatch(entry -> entry.endsWith(".java"));
         Set<String> javadoc = entries(file(module, "-javadoc.jar"));
@@ -193,7 +234,7 @@ class PublishedArtifactsSystemTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli"})
+    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
     void everyFileIsSignedWhenASigningKeyIsConfigured(String module) {
         assumeTrue(Boolean.getBoolean("doctize.signed"), "no signing key configured; this is checked in the release build");
 

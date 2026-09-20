@@ -31,13 +31,22 @@ tasks.withType<Javadoc>().configureEach {
     }
 }
 
+// A Gradle plugin module gets its publications from `java-gradle-plugin`: the plugin itself, and a "marker" artifact
+// that lets `plugins { id("...") version "..." }` find it. Every publication needs the metadata Central requires.
+val isGradlePlugin = plugins.hasPlugin("java-gradle-plugin")
+
 publishing {
     publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
+        if (!isGradlePlugin) {
+            create<MavenPublication>("maven") {
+                from(components["java"])
+            }
+        }
+        withType<MavenPublication>().configureEach {
             pom {
-                name = provider { "Doctize: ${project.name.removePrefix("doctize-")}" }
-                description = provider { project.description }
+                // Conventions, so that the marker publication keeps the name and description the plugin gives it.
+                name.convention(provider { "Doctize: ${project.name.removePrefix("doctize-")}" })
+                description.convention(provider { project.description })
                 url = repositoryUrl
                 inceptionYear = "2026"
                 licenses {
@@ -85,6 +94,6 @@ signing {
     isRequired = false
     if (signingKey.isPresent) {
         useInMemoryPgpKeys(signingKey.get(), signingPassword.orNull)
-        sign(publishing.publications["maven"])
+        sign(publishing.publications)
     }
 }

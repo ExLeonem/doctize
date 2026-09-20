@@ -122,8 +122,9 @@ jobs:
   `id-token: write` permissions, which the workflow declares.
 - The actions are pinned to major versions. Update them from time to time; the workflow has not been run against a live repository yet, so check the first run.
 
-The `-PdoctizeArgs` property is understood by the Gradle plugin of this repository and by the task shown in
-[Running from Gradle](03-gradle.md); it appends arguments to the `doctize generate` call.
+The `-PdoctizeArgs` property is understood by the [Gradle plugin](03-gradle.md) and by the `JavaExec` task shown there
+under *Without the plugin*; it appends arguments to the `doctize generate` call. The plugin also has the options
+`--github-pages` and `--base-url` for the same purpose.
 
 ## Without GitHub Actions
 

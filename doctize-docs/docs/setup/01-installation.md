@@ -11,6 +11,7 @@ description: Requirements, modules and how to get them.
 |------|-------------|
 | JDK that runs `javac` (the annotation processor runs inside it) | 25 or newer |
 | JDK that runs the `doctize` command | 25 or newer |
+| JDK that runs Gradle, if you use the plugin | 17 or newer (Gradle 9 or newer); the tool itself runs on a Java 25 toolchain |
 | Your code's target release | any (`--release` may be lower than 25) |
 | Markdown `///` doc comments | JDK 23 or newer, which the requirement above already covers |
 | Browser for reading the site | any current version |
@@ -27,6 +28,7 @@ description: Requirements, modules and how to get them.
 | `dev.doctize:doctize-processor` | The annotation processor. Add to the annotation processor path. |
 | `dev.doctize:doctize-core` | The generator as a library, see {@link Doctize}. |
 | `dev.doctize:doctize-cli` | The `doctize` command line tool ([Command line](02-command-line.md)). |
+| `dev.doctize:doctize-gradle-plugin` | The Gradle plugin `dev.doctize`, which adds the annotations and the processor and runs the tool ([Running from Gradle](03-gradle.md)). You apply it by its id, not by these coordinates. |
 
 ## Building from source
 
