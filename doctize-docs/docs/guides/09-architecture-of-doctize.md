@@ -10,7 +10,7 @@ This page is for people who change Doctize or build on it. [How it works](07-how
 pipeline; this one looks at how the code is put together: which modules there are, which packages the generator consists
 of, who may depend on whom, and where that is not (yet) true.
 
-The facts here come from the same analysis that the [architecture map](08-architecture-map.md) makes. When this site is built with a
+The facts here come from the same analysis that the [architecture diagrams](08-architecture-diagrams.md) makes. When this site is built with a
 [license](../setup/06-licensing.md), it also contains that map of the current code, *Live architecture map*, in this section.
 
 ## Modules
@@ -20,7 +20,7 @@ The facts here come from the same analysis that the [architecture map](08-archit
 | Module | Published | Depends on | What it is |
 |--------|-----------|------------|------------|
 | `doctize-annotations` | yes | nothing | {@link Doc}, {@link DocPage} and {@link DocIgnore}. Source retention: they leave no trace in class files, so documented code has no runtime dependency on Doctize. |
-| `doctize-core` | yes | Jackson, commonmark, jmustache; the annotations only to compile | The generator: everything from the Javadoc parser to the theme engine, the licensing and the architecture map. Entry point {@link Doctize}. |
+| `doctize-core` | yes | Jackson, commonmark, jmustache; the annotations only to compile | The generator: everything from the Javadoc parser to the theme engine, the licensing and the architecture diagrams. Entry point {@link Doctize}. |
 | `doctize-processor` | yes | annotations, core | The annotation processor. It runs inside `javac` and writes `model.json`. |
 | `doctize-cli` | yes | core, picocli | The `doctize` command. |
 | `doctize-gradle-plugin` | yes | Gradle's API only | The plugin `dev.doctize`. It runs the command line tool in a separate process. |
@@ -59,7 +59,8 @@ below: it would be a hub that hides the structure.
 | `markdown` | Markdown to HTML, heading anchors, build-time syntax highlighting | `text` |
 | `config` | The settings of `doctize.yml` | `hosting`, `text` |
 | `site` | Page sources, and the assembler that puts pages into sections and gives them URLs | `config`, `javadoc`, `markdown`, `model`, `text` |
-| `architecture` | The architecture map: a page source that analyzes class files | `config`, `site`, `text` |
+| `architecture` | The architecture diagrams: a page source that analyzes class files and draws Mermaid diagrams | `config`, `site`, `text` |
+| `diagram` | The Mermaid library that draws diagrams in the browser, and which pages need it | `site` |
 | `render` | Renders a page: guides through Markdown, types through their template | `config`, `hosting`, `javadoc`, `markdown`, `model`, `site`, `theme` |
 | `search` | Builds the search index | `markdown`, `render`, `site` |
 | `hosting` | The address of the site, and the files GitHub Pages needs | `output`, `site`, `text` |

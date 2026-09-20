@@ -3,6 +3,7 @@ package dev.doctize.architecture;
 import dev.doctize.architecture.ArchitectureModel.Edge;
 import dev.doctize.architecture.ArchitectureModel.Node;
 import dev.doctize.config.ArchitectureSettings;
+import dev.doctize.config.DiagramSettings;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,9 +22,15 @@ final class ArchitecturePage {
         StringBuilder out = new StringBuilder();
         out.append(introduction()).append("\n\n");
         out.append("## Map\n\n");
-        out.append(ArchitectureDiagram.svg(model, settings)).append('\n');
-        out.append("Arrows point from a part to the parts it depends on. A thicker arrow means more references,"
-                + " and red marks a dependency cycle or a broken rule. Hover over a part or an arrow for details.");
+        if (settings.diagrams().overview().format() == DiagramSettings.Format.SVG) {
+            out.append(ArchitectureDiagram.svg(model, settings)).append('\n');
+            out.append("Arrows point from a part to the parts it depends on. A thicker arrow means more references,"
+                    + " and red marks a dependency cycle or a broken rule. Hover over a part or an arrow for details.");
+        } else {
+            out.append(Fences.block("mermaid", OverviewMermaid.source(model, settings))).append('\n');
+            out.append("Arrows point from a part to the parts it depends on. A number on an arrow says how many references there are,"
+                    + " and red marks a dependency cycle or a broken rule.");
+        }
         if (settings.minReferences() > 1) {
             out.append(" Dependencies with fewer than ").append(settings.minReferences()).append(" references are not drawn.");
         }

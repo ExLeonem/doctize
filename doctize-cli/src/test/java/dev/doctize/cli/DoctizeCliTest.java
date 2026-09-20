@@ -211,7 +211,7 @@ class DoctizeCliTest {
                 "--license", garbageLicense().toString());
 
         assertThat(result.exitCode()).isZero();
-        assertThat(result.err()).contains("warning: The architecture map was skipped.", "cannot be used");
+        assertThat(result.err()).contains("warning: The architecture diagrams were skipped.", "cannot be used");
         assertThat(site.resolve("index.html")).exists();
         assertThat(site.resolve("architecture")).doesNotExist();
     }
@@ -226,6 +226,26 @@ class DoctizeCliTest {
 
     @Test
     void theHelpOfGenerateListsTheLicenseAndArchitectureOptions() {
-        assertThat(run("generate", "--help").out()).contains("--license", "--architecture", "--classes");
+        assertThat(run("generate", "--help").out()).contains("--license", "--architecture", "--classes", "--diagram");
+    }
+
+    @Test
+    void aKindOfDiagramCanBeSwitchedOnByNameInAnyCaseAndWithoutALicenseIsSkippedWithAWarning() throws IOException {
+        Path site = dir.resolve("site");
+
+        Result result = run("generate", "--model", writeModel().toString(), "--output", site.toString(), "--diagram", "Classes", "--diagram", "states",
+                "--license", garbageLicense().toString());
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.err()).contains("warning: The architecture diagrams were skipped.", "cannot be used");
+        assertThat(site.resolve("architecture")).doesNotExist();
+    }
+
+    @Test
+    void anUnknownKindOfDiagramIsRefusedWithTheKnownOnes() throws IOException {
+        Result result = run("generate", "--model", writeModel().toString(), "--output", dir.resolve("site").toString(), "--diagram", "sequence");
+
+        assertThat(result.exitCode()).isEqualTo(1);
+        assertThat(result.err()).contains("diagram type must be one of overview, classes, states, entities, flows", "sequence");
     }
 }

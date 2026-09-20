@@ -71,6 +71,7 @@ public class DoctizePlugin implements Plugin<Project> {
             task.getAdditionalInputs().from(doctize.getAdditionalInputs());
             task.getLicense().convention(doctize.getLicense());
             task.getArchitecture().convention(doctize.getArchitecture());
+            task.getDiagrams().convention(doctize.getDiagrams());
             task.getEnvironmentLicense().convention(project.getProviders().environmentVariable("DOCTIZE_LICENSE").map(DoctizePlugin::fingerprint));
             task.getOutput().convention(doctize.getOutput());
             task.getGithubPages().convention(doctize.getGithubPages());

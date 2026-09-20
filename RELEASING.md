@@ -86,6 +86,13 @@ site, issue a license for yourself (see above; give it an expiry, and renew it b
 not empty, the site is built without the page; an empty secret is ignored, an unusable one makes the build fail with the reason.
 Locally, put the file at `doctize-docs/doctize.license` (ignored by Git) or in `~/.doctize/license`.
 
+### Third-party code that is shipped
+
+`doctize-core` bundles Mermaid (`doctize-core/src/main/resources/dev/doctize/diagram/mermaid.min.js`), which is MIT licensed. Its license and
+where it comes from are next to it (`mermaid.LICENSE`, `mermaid.NOTICE.md`). To update it: `npm pack mermaid@<version>`, compare the tarball
+with `npm view mermaid@<version> dist.integrity`, replace the file and the notice, and run the tests. The file is about 5.5 MB; it ends up in
+the jar of `doctize-core` and, only if a page has a diagram, in a generated site.
+
 ### Tests that need the key
 
 The tests of the licensed path with the real, installed product (`ArchitectureSystemTest` and parts of `GradlePluginSystemTest`) need a

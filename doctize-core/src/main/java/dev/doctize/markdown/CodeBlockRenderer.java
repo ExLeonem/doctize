@@ -31,6 +31,12 @@ final class CodeBlockRenderer implements NodeRenderer {
     public void render(Node node) {
         FencedCodeBlock block = (FencedCodeBlock) node;
         FenceInfo info = FenceInfo.parse(block.getInfo());
+        if (info.language().equals("mermaid")) {
+            html.line();
+            html.raw(diagram(block, info));
+            html.line();
+            return;
+        }
         boolean tabbed = info.isTabbed();
         html.line();
         if (tabbed && !isTabbed(block.getPrevious())) {
@@ -47,6 +53,18 @@ final class CodeBlockRenderer implements NodeRenderer {
             html.raw("</div>");
         }
         html.line();
+    }
+
+    /**
+     * A Mermaid diagram. The source stays in the page, readable, and the browser turns it into a picture (see diagrams.js in the
+     * theme), so that it also works when scripts are off, as far as reading goes.
+     */
+    private static String diagram(FencedCodeBlock block, FenceInfo info) {
+        StringBuilder out = new StringBuilder("<div class=\"diagram\">");
+        if (!info.title().isEmpty()) {
+            out.append("<div class=\"diagram-title\">").append(Html.escape(info.title())).append("</div>");
+        }
+        return out.append("<pre class=\"mermaid\">").append(Html.escape(block.getLiteral().strip())).append("</pre></div>").toString();
     }
 
     private String codeBlock(FencedCodeBlock block, FenceInfo info) {

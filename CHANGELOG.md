@@ -8,12 +8,19 @@ All notable changes to Doctize are documented in this file. The format follows
 
 ### Added
 
+- Architecture diagrams as Mermaid diagrams, all of them Pro features: an overview of the packages, class diagrams, state diagrams,
+  entity-relationship diagrams for databases (JPA, or your own annotations) and flow charts of call flows. Each kind is switched on and off
+  and configured on its own under `architecture.diagrams` (`--diagram` on the command line, `diagrams` in Gradle). New annotations mark code:
+  `@DiagramIgnore`, `@DiagramInclude`, `@StateMachine`, `@Transition` and `@Flow`; they are kept in the class file, and their `types` are text
+  (`DiagramTypes`) so that libraries that use them cause no compiler warning downstream.
+- Mermaid diagrams in guides: a fenced code block with the language `mermaid` is drawn in the browser. The Mermaid library (12.0.0, MIT) is
+  bundled and copied into a site only if a page has a diagram, so diagrams work offline; a theme needs `diagrams.js`, which the default layout has.
 - A license mechanism. A license is a signed text file (Ed25519) that Doctize checks offline, and that unlocks features. It is found
   through `--license`, `DOCTIZE_LICENSE`, `doctize.license` next to the configuration or `~/.doctize/license`. A licensed feature that
   was switched on without a usable license is skipped with a warning. New `doctize license` command; `Doctize.Builder#license`,
   `licenseKey`, `licenseVerifier`; `GenerationReport#license`; the `license` setting of the Gradle plugin.
-- The architecture map, the first licensed feature. It reads compiled classes, finds the dependencies between packages, and adds a
-  page with a diagram, tables, dependency cycles, layers and forbidden dependencies. Cycles and broken rules are warnings.
+- The overview of the architecture, the first licensed feature. It reads compiled classes, finds the dependencies between packages, and adds
+  a page with a diagram, tables, dependency cycles, layers and forbidden dependencies. Cycles and broken rules are warnings.
   Configured under `architecture:` in `doctize.yml`: `enabled`, `title`, `section`, `order`, `rootPackage`, `depth`, `include`,
   `exclude`, `components`, `layers`, `forbid`, `cycles`, `external`, `libraryDepth`, `minReferences`, `direction`.
   New `--architecture` and `--classes` options, `Doctize.Builder#architecture` and `classes`, and `architecture` in the Gradle plugin.

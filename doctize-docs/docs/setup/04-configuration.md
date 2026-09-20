@@ -120,8 +120,8 @@ If `baseUrl` is not set, the address is `https://<customDomain>/`, or, with `git
 
 ## architecture
 
-The [architecture map](../guides/08-architecture-map.md), a licensed feature, see [Licensing](06-licensing.md) and
-{@link ArchitectureSettings}. It is off until `enabled` is `true`.
+The [architecture diagrams](../guides/08-architecture-diagrams.md), a Pro feature, see [Licensing](06-licensing.md), {@link ArchitectureSettings}
+and {@link DiagramSettings}. They are off until `enabled` is `true`.
 
 | Key | Default | Meaning |
 |-----|---------|---------|
@@ -138,6 +138,28 @@ The [architecture map](../guides/08-architecture-map.md), a licensed feature, se
 | `libraryDepth` | `2` | How many package levels identify a library. |
 | `minReferences` | `1` | The least weight a dependency needs to be drawn. |
 | `direction` | `top-down` | `top-down` or `left-right`. |
+| `diagrams` | the overview | Which kinds of diagram are drawn, and their options. A kind is `true`, `false` or a mapping. |
+
+`diagrams` has one entry for every kind of diagram:
+
+```yaml
+architecture:
+  enabled: true
+  diagrams:
+    overview: {format: mermaid}        # or svg
+    classes: {groupBy: package, methodVisibility: public}
+    states: true
+    entities: {tableNames: true}
+    flows: {depth: 5}
+```
+
+| Key | Options |
+|-----|---------|
+| `overview` | `enabled`, `format` |
+| `classes` | `enabled`, `title`, `groupBy`, `maxClasses`, `fields`, `fieldVisibility`, `methods`, `methodVisibility`, `constructors`, `accessors`, `stereotypes`, `inheritance`, `associations`, `dependencies`, `neighbours`, `onlyMarked`, `includeTypes`, `excludeTypes`, `direction` |
+| `states` | `enabled`, `title`, `events`, `direction`, `includeTypes`, `excludeTypes` |
+| `entities` | `enabled`, `title`, `columns`, `keys`, `relationships`, `tableNames`, `entityAnnotations`, `idAnnotations`, `onlyMarked`, `includeTypes`, `excludeTypes` |
+| `flows` | `enabled`, `title`, `depth`, `maxNodes`, `implementations`, `constructors`, `accessors`, `numbered`, `direction`, `entryPoints`, `includeTypes`, `excludeTypes` |
 
 The guide describes every option, with examples.
 

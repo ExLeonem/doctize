@@ -29,6 +29,12 @@ final class CliArguments {
         return this;
     }
 
+    /** The same option once for every value: {@code --diagram classes --diagram states}. */
+    CliArguments repeat(String name, Iterable<String> values) {
+        values.forEach(value -> option(name, value));
+        return this;
+    }
+
     CliArguments options(String name, Iterable<File> values) {
         values.forEach(value -> option(name, value));
         return this;

@@ -35,6 +35,13 @@ class CliArgumentsTest {
     }
 
     @Test
+    void anOptionCanBeRepeatedForEveryValue() {
+        assertThat(CliArguments.generate().repeat("--diagram", List.of("classes", "states")).build())
+                .containsExactly("generate", "--diagram", "classes", "--diagram", "states");
+        assertThat(CliArguments.generate().repeat("--diagram", List.of()).build()).containsExactly("generate");
+    }
+
+    @Test
     void extraArgumentsComeLastSoTheyCanOverrideEarlierOnes() {
         List<String> arguments = CliArguments.generate()
                 .option("--output", new File("build/docs"))

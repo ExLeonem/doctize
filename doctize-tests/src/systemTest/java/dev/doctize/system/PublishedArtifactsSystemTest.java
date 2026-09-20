@@ -172,8 +172,13 @@ class PublishedArtifactsSystemTest {
         Path jar = file("annotations", ".jar");
 
         assertThat(entries(jar).stream().filter(e -> e.endsWith(".class")))
-                .containsExactlyInAnyOrder("dev/doctize/annotations/Doc.class", "dev/doctize/annotations/DocPage.class", "dev/doctize/annotations/DocIgnore.class");
-        assertThat(Files.size(jar)).isLessThan(10_000);
+                .as("nothing but annotations, and the names they use")
+                .containsExactlyInAnyOrder(
+                        "dev/doctize/annotations/Doc.class", "dev/doctize/annotations/DocPage.class", "dev/doctize/annotations/DocIgnore.class",
+                        "dev/doctize/annotations/DiagramTypes.class", "dev/doctize/annotations/DiagramIgnore.class",
+                        "dev/doctize/annotations/DiagramInclude.class", "dev/doctize/annotations/StateMachine.class",
+                        "dev/doctize/annotations/Transition.class", "dev/doctize/annotations/Transitions.class", "dev/doctize/annotations/Flow.class");
+        assertThat(Files.size(jar)).isLessThan(30_000);
     }
 
     @Test
@@ -232,6 +237,18 @@ class PublishedArtifactsSystemTest {
             assertThat(entries(file(module, ".jar"))).as(module).noneMatch(entry -> entry.contains("LicenseIssuer") || entry.contains("licensing/"));
         }
         assertThat(dependencies("cli")).as("the command does not need the tool that issues licenses").noneMatch(dependency -> dependency.contains("licensing"));
+    }
+
+    @Test
+    void theCoreJarShipsTheMermaidLibraryTogetherWithItsLicense() throws IOException {
+        Set<String> entries = entries(file("core", ".jar"));
+
+        assertThat(entries).contains("dev/doctize/diagram/mermaid.min.js", "dev/doctize/diagram/mermaid.LICENSE", "dev/doctize/diagram/mermaid.NOTICE.md",
+                "dev/doctize/theme/default/assets/js/diagrams.js");
+        try (JarFile file = new JarFile(file("core", ".jar").toFile())) {
+            assertThat(new String(file.getInputStream(file.getEntry("dev/doctize/diagram/mermaid.LICENSE")).readAllBytes())).contains("MIT License", "Knut Sveidqvist");
+            assertThat(file.getEntry("dev/doctize/diagram/mermaid.min.js").getSize()).isGreaterThan(1_000_000);
+        }
     }
 
     @Test

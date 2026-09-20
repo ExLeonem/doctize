@@ -522,3 +522,11 @@ code.type { background: none; border: 0; padding: 0; }
 .arch-edge--alert, .arch-edge--alert:hover { stroke: var(--caution); opacity: 1; }
 .arch-arrowhead { fill: var(--text-muted); }
 .arch-arrowhead--alert { fill: var(--caution); }
+
+/* Mermaid diagrams: the source is in the page, and the browser draws it (assets/js/diagrams.js). */
+.diagram { overflow-x: auto; margin: 1.25rem 0; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-subtle); }
+.diagram-title { margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+.diagram pre.mermaid { margin: 0; padding: 0; background: transparent; border: 0; text-align: center; font-family: var(--font-mono); font-size: 0.85rem; white-space: pre; }
+.diagram pre.mermaid[data-processed] { font-family: var(--font-sans); white-space: normal; }
+.diagram pre.mermaid svg { max-width: 100%; height: auto; }
+.diagram pre.mermaid.mermaid-failed::after { content: "The diagram could not be drawn: its library did not load. The source is shown."; display: block; margin-top: 0.75rem; font-family: var(--font-sans); font-size: 0.8rem; color: var(--caution); }

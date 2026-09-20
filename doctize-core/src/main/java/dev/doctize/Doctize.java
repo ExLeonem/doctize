@@ -3,7 +3,10 @@ package dev.doctize;
 import dev.doctize.annotations.Doc;
 import dev.doctize.architecture.ArchitecturePageSource;
 import dev.doctize.config.ConfigLoader;
+import dev.doctize.config.ArchitectureSettings;
+import dev.doctize.config.DiagramSettings;
 import dev.doctize.config.DoctizeConfig;
+import dev.doctize.diagram.MermaidAssets;
 import dev.doctize.license.Feature;
 import dev.doctize.license.LicenseLocator;
 import dev.doctize.license.LicenseStatus;
@@ -113,6 +116,9 @@ public final class Doctize {
         List<String> extraCss = publishExtras(output, config.theme().extraCss());
         List<String> extraJs = publishExtras(output, config.theme().extraJs());
         publishThemeAssets(output, theme);
+        if (MermaidAssets.usedBy(site)) {
+            output.write(MermaidAssets.SITE_PATH, MermaidAssets.script());
+        }
         if (guides != null) {
             publishGuideAssets(output, guides);
         }
@@ -142,7 +148,7 @@ public final class Doctize {
         }
         Optional<String> denial = license.denialFor(Feature.ARCHITECTURE);
         if (denial.isPresent()) {
-            warnings.add("The architecture map was skipped. " + denial.get());
+            warnings.add("The architecture diagrams were skipped. " + denial.get());
             return null;
         }
         Set<Path> roots = new LinkedHashSet<>(classLocations);
@@ -217,6 +223,7 @@ public final class Doctize {
         private Map<String, String> licenseEnvironment;
         private Path licenseHome;
         private boolean architecture;
+        private final Set<DiagramSettings.Kind> diagramKinds = new LinkedHashSet<>();
         private Path guidesDirectory;
         private Path themeDirectory;
         private Path outputDirectory = Path.of("build", "docs");
@@ -263,6 +270,15 @@ public final class Doctize {
         /** Switches the architecture map on, as {@code architecture.enabled: true} does. It needs a license. */
         public Builder architecture() {
             this.architecture = true;
+            return this;
+        }
+
+        /**
+         * Switches a kind of architecture diagram on, and with it the architecture diagrams as a whole, whatever
+         * {@code architecture.diagrams} of the configuration file says about it. It needs a Pro license. May be called repeatedly.
+         */
+        public Builder diagram(DiagramSettings.Kind kind) {
+            this.diagramKinds.add(kind);
             return this;
         }
 
@@ -372,7 +388,15 @@ public final class Doctize {
                     config.defaultSection(),
                     config.api(),
                     config.hosting().overriddenBy(baseUrl, githubPages, customDomain),
-                    architecture ? config.architecture().turnedOn() : config.architecture());
+                    requestedArchitecture());
+        }
+
+        private ArchitectureSettings requestedArchitecture() {
+            ArchitectureSettings settings = architecture || !diagramKinds.isEmpty() ? config.architecture().turnedOn() : config.architecture();
+            for (DiagramSettings.Kind kind : diagramKinds) {
+                settings = settings.withDiagram(kind);
+            }
+            return settings;
         }
     }
 }

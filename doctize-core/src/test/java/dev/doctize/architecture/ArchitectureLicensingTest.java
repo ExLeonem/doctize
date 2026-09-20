@@ -62,7 +62,7 @@ class ArchitectureLicensingTest {
         GenerationReport report = builder().architecture().licenseKey(validLicense()).build().generate();
 
         assertThat(site.resolve("architecture/architecture.html")).exists();
-        assertThat(Files.readString(site.resolve("architecture/architecture.html"))).contains("<svg class=\"arch-map\"", "<h2 id=\"map\">Map", "api depends on service");
+        assertThat(Files.readString(site.resolve("architecture/architecture.html"))).contains("<pre class=\"mermaid\">flowchart TB", "<h2 id=\"map\">Map", "&lt;b&gt;api&lt;/b&gt;");
         assertThat(Files.readString(site.resolve("index.html"))).as("the navigation lists it").contains("architecture/architecture.html");
         assertThat(Files.readString(site.resolve("search-index.js"))).as("the tables of the page can be searched").contains("Dependency cycles");
         assertThat(report.license()).get().extracting(License::licensee).isEqualTo("Acme Corp");
@@ -78,7 +78,7 @@ class ArchitectureLicensingTest {
         assertThat(site.resolve("start.html")).doesNotExist();
         assertThat(report.license()).isEmpty();
         assertThat(report.warnings()).singleElement().asString()
-                .startsWith("The architecture map was skipped.").contains("needs a Doctize license", "none was found");
+                .startsWith("The architecture diagrams were skipped.").contains("need a Doctize Pro license", "none was found");
     }
 
     @Test
@@ -97,7 +97,7 @@ class ArchitectureLicensingTest {
         GenerationReport report = builder().architecture().licenseKey(expired).build().generate();
 
         assertThat(site.resolve("architecture")).doesNotExist();
-        assertThat(report.warnings()).singleElement().asString().contains("architecture map was skipped", "expired on 2026-09-01");
+        assertThat(report.warnings()).singleElement().asString().contains("architecture diagrams were skipped", "expired on 2026-09-01");
         assertThat(report.license()).isEmpty();
     }
 
@@ -108,7 +108,7 @@ class ArchitectureLicensingTest {
         GenerationReport report = builder().architecture().licenseKey(other).build().generate();
 
         assertThat(site.resolve("architecture")).doesNotExist();
-        assertThat(report.warnings()).singleElement().asString().contains("does not include the architecture map");
+        assertThat(report.warnings()).singleElement().asString().contains("does not include the architecture diagrams");
     }
 
     @Test
@@ -194,5 +194,46 @@ class ArchitectureLicensingTest {
 
         assertThat(site.resolve("architecture/architecture.html")).exists();
         assertThat(site.resolve("api-reference/com.acme.domain.Order.html")).exists();
+    }
+
+    @Test
+    void aKindOfDiagramThatIsSwitchedOnInCodeGetsItsPageAndTheLibraryThatDrawsIt() throws IOException {
+        GenerationReport report = builder().diagram(dev.doctize.config.DiagramSettings.Kind.CLASSES).licenseKey(validLicense()).build().generate();
+
+        assertThat(site.resolve("architecture/class-diagrams.html")).exists();
+        assertThat(Files.readString(site.resolve("architecture/class-diagrams.html"))).contains("<pre class=\"mermaid\">classDiagram", "class Order_Line");
+        assertThat(site.resolve("assets/vendor/mermaid.min.js")).as("a page has a diagram, so the site gets the library").exists();
+        assertThat(report.license()).isPresent();
+    }
+
+    @Test
+    void withoutALicenseNoDiagramOfAnyKindIsMadeAndNoLibraryIsPublished() {
+        GenerationReport report = builder().diagram(dev.doctize.config.DiagramSettings.Kind.CLASSES).diagram(dev.doctize.config.DiagramSettings.Kind.FLOWS).build().generate();
+
+        assertThat(site.resolve("architecture")).doesNotExist();
+        assertThat(site.resolve("assets/vendor")).doesNotExist();
+        assertThat(report.warnings()).singleElement().asString().startsWith("The architecture diagrams were skipped.").contains("Pro license");
+    }
+
+    @Test
+    void anOverviewInSvgNeedsNoScriptSoTheSiteGetsNoLibrary() throws IOException {
+        Path config = work.resolve("doctize.yml");
+        Files.writeString(config, "guides: docs\narchitecture:\n  enabled: true\n  diagrams:\n    overview:\n      format: svg\n");
+
+        Doctize.builder().configFile(config).classes(classes).output(site).licenseVerifier(licenses.verifier()).licenseKey(validLicense()).build().generate();
+
+        assertThat(Files.readString(site.resolve("architecture/architecture.html"))).contains("<svg class=\"arch-map\"");
+        assertThat(site.resolve("assets/vendor")).doesNotExist();
+    }
+
+    @Test
+    void theConfigurationFileChoosesTheKindsOfDiagram() throws IOException {
+        Path config = work.resolve("doctize.yml");
+        Files.writeString(config, "guides: docs\narchitecture:\n  enabled: true\n  section: Design\n  diagrams:\n    overview: false\n    classes:\n      groupBy: all\n      title: Types\n");
+
+        Doctize.builder().configFile(config).classes(classes).output(site).licenseVerifier(licenses.verifier()).licenseKey(validLicense()).build().generate();
+
+        assertThat(site.resolve("design/architecture.html")).as("the overview is off").doesNotExist();
+        assertThat(Files.readString(site.resolve("design/class-diagrams.html"))).contains("<title>Types", "All types");
     }
 }

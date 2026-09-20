@@ -168,7 +168,7 @@ class GradlePluginSystemTest {
         BuildResult result = run("generateDocs");
 
         assertThat(result.task(":generateDocs").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
-        assertThat(result.getOutput()).contains("The architecture map was skipped.", "not a Doctize license");
+        assertThat(result.getOutput()).contains("The architecture diagrams were skipped.", "not a Doctize license");
         assertThat(project.resolve("build/docs/index.html")).exists();
         assertThat(project.resolve("build/docs/architecture")).doesNotExist();
     }
@@ -184,13 +184,13 @@ class GradlePluginSystemTest {
 
         assertThat(first.task(":generateDocs").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
         assertThat(first.getOutput()).contains("Licensed to Test Licensee");
-        assertThat(Files.readString(project.resolve("build/docs/architecture/architecture.html"))).contains("<svg class=\"arch-map\"");
+        assertThat(Files.readString(project.resolve("build/docs/architecture/architecture.html"))).contains("<pre class=\"mermaid\">flowchart TB");
         assertThat(run("generateDocs", "--architecture").task(":generateDocs").getOutcome()).isEqualTo(TaskOutcome.UP_TO_DATE);
 
         Files.writeString(project.resolve("doctize.license"), "not a license\n");
         BuildResult second = run("generateDocs", "--architecture");
         assertThat(second.task(":generateDocs").getOutcome()).as("a changed license is an input").isEqualTo(TaskOutcome.SUCCESS);
-        assertThat(second.getOutput()).contains("The architecture map was skipped.");
+        assertThat(second.getOutput()).contains("The architecture diagrams were skipped.");
     }
 
     @Test

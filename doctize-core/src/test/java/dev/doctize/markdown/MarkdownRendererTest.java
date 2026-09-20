@@ -100,4 +100,25 @@ class MarkdownRendererTest {
         assertThat(info.tab()).isEqualTo("Gradle");
         assertThat(FenceInfo.parse(null).language()).isEmpty();
     }
+
+    @Test
+    void aMermaidBlockIsKeptAsSourceForTheBrowserToDraw() {
+        String html = renderer.render("```mermaid title=\"Flow\"\nflowchart TD\n  A[\"x < y\"] --> B\n```").html();
+
+        assertThat(html).contains("<div class=\"diagram\">", "<div class=\"diagram-title\">Flow</div>", "<pre class=\"mermaid\">flowchart TD")
+                .contains("A[&quot;x &lt; y&quot;] --&gt; B");
+        assertThat(html).as("it is a diagram, not highlighted code").doesNotContain("code-block", "tok-");
+    }
+
+    @Test
+    void aMermaidBlockCannotInjectMarkup() {
+        String html = renderer.render("```mermaid\nflowchart TD\n  A[\"<script>alert(1)</script>\"]\n```").html();
+
+        assertThat(html).doesNotContain("<script>").contains("&lt;script&gt;");
+    }
+
+    @Test
+    void otherLanguagesAreStillCode() {
+        assertThat(renderer.render("```java\nclass A {}\n```").html()).contains("code-block").doesNotContain("class=\"mermaid\"");
+    }
 }

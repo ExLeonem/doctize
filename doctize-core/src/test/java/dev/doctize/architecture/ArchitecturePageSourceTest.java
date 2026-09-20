@@ -66,7 +66,7 @@ class ArchitecturePageSourceTest {
         String markdown = markdown(source(plain()));
 
         assertThat(markdown).contains("**8 types** in **4 packages**", "shown as **4 parts** with **5 dependencies**")
-                .contains("## Map", "<svg", "## Parts", "## Dependency cycles")
+                .contains("## Map", "```mermaid\nflowchart TB", "## Parts", "## Dependency cycles")
                 .doesNotContain("## Layers", "## Rule violations", "## Libraries");
         assertThat(markdown).contains("| `api` | `com.acme.api` | 1 | `domain`, `service` | — |");
     }

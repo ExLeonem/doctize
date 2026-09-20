@@ -20,6 +20,9 @@ dependencies {
     implementation(libs.commonmark.tasklist)
     implementation(libs.jmustache)
 
+    // The tests compile small projects that use the annotations, as the code that Doctize analyzes does.
+    testImplementation(project(":doctize-annotations"))
+
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj)

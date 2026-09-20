@@ -156,6 +156,7 @@ Comments and guides share one renderer, which supports GitHub-flavoured Markdown
   ```
   ````
 
+- **diagrams**: a fenced block with the language `mermaid` is a [Mermaid](https://mermaid.js.org) diagram, see below
 - `<pre>{@code ...}</pre>` blocks in classic comments are turned into highlighted code blocks with a copy button.
 - Headings get permalink anchors, and the "On this page" navigation lists the second and third level headings.
 
@@ -173,6 +174,31 @@ An alert is a block quote whose first line names its type:
 
 Alerts are recognised at the top level of a comment or guide. Inside a list item or another quote they are
 shown as an ordinary block quote.
+
+### Diagrams
+
+Write a diagram as text, and the browser draws it: flow charts, sequence diagrams, class diagrams, state diagrams, entity-relationship
+diagrams, Gantt charts and everything else that Mermaid knows.
+
+````markdown
+```mermaid title="Checkout"
+flowchart TD
+  A[Cart] --> B{Paid?}
+  B -- yes --> C[Ship]
+  B -- no --> D[Wait]
+```
+````
+
+```mermaid title="Checkout"
+flowchart TD
+  A[Cart] --> B{Paid?}
+  B -- yes --> C[Ship]
+  B -- no --> D[Wait]
+```
+
+The Mermaid library is copied into the site, only if a page has a diagram, and a page only loads it if it shows one. So diagrams
+work offline and from the file system, and follow the light and dark mode of the site. With scripts off, the text of the diagram is shown.
+Writing diagrams by hand is free. Drawing them from your code is not: see [Architecture diagrams](08-architecture-diagrams.md).
 
 ## Keep in mind
 

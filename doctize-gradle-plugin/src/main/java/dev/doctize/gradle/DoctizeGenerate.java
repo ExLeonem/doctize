@@ -78,6 +78,10 @@ public abstract class DoctizeGenerate extends DefaultTask {
     @Option(option = "architecture", description = "Generates the architecture map. This is a licensed feature.")
     public abstract Property<Boolean> getArchitecture();
 
+    @Input
+    @Option(option = "diagram", description = "Switches on a kind of architecture diagram: overview, classes, states, entities or flows. A Pro feature.")
+    public abstract ListProperty<String> getDiagrams();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutput();
 
@@ -120,6 +124,7 @@ public abstract class DoctizeGenerate extends DefaultTask {
                 // A module with nothing to document has no model, but still belongs to the architecture.
                 .options("--classes", getModels().getFiles().stream().filter(File::exists).toList())
                 .flag("--architecture", getArchitecture().get())
+                .repeat("--diagram", getDiagrams().get())
                 .option("--license", getLicense().getAsFile().getOrNull())
                 .option("--guides", getGuides().getAsFile().getOrNull())
                 .option("--theme", getTheme().getAsFile().getOrNull())

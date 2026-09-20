@@ -10,8 +10,11 @@ import java.util.Optional;
 @Doc(group = "Licensing", order = 60)
 public enum Feature {
 
-    /** The architecture map: the packages of a project, their dependencies, cycles and layer rules. */
-    ARCHITECTURE("architecture", "architecture map");
+    /**
+     * The architecture diagrams: the overview of the packages, their dependencies, cycles and layer rules, and class diagrams, state
+     * diagrams, entity-relationship diagrams and flow charts made from the code. A Pro feature.
+     */
+    ARCHITECTURE("architecture", "architecture diagrams");
 
     private final String id;
     private final String title;

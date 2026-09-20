@@ -137,6 +137,16 @@ class DoctizePluginTest {
     }
 
     @Test
+    void theKindsOfDiagramReachTheTaskAndAreNoneByDefault() {
+        Project project = project("dev.doctize");
+        assertThat(task(project).getDiagrams().get()).isEmpty();
+
+        project.getExtensions().getByType(DoctizeExtension.class).getDiagrams().set(List.of("classes", "flows"));
+
+        assertThat(task(project).getDiagrams().get()).containsExactly("classes", "flows");
+    }
+
+    @Test
     void theOutputDefaultsToBuildDocs() {
         Project project = project("dev.doctize");
 

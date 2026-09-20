@@ -67,6 +67,12 @@ public abstract class DoctizeExtension {
     /** Generates the architecture map, a licensed feature. Default: false; {@code architecture.enabled} in {@code doctize.yml} does the same. */
     public abstract Property<Boolean> getArchitecture();
 
+    /**
+     * The kinds of architecture diagram to switch on: {@code overview}, {@code classes}, {@code states}, {@code entities} and
+     * {@code flows}. They need a Pro license and add to what {@code doctize.yml} says. Default: none.
+     */
+    public abstract ListProperty<String> getDiagrams();
+
     /** Prepares the output for GitHub Pages. Default: false. */
     public abstract Property<Boolean> getGithubPages();
 

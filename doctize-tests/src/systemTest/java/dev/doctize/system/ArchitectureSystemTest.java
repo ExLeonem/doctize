@@ -68,7 +68,7 @@ class ArchitectureSystemTest {
                 "--license", garbageLicense().toString());
 
         assertThat(result.exitCode()).as(result.toString()).isZero();
-        assertThat(result.err()).contains("doctize: warning: The architecture map was skipped.", "not a Doctize license");
+        assertThat(result.err()).contains("doctize: warning: The architecture diagrams were skipped.", "not a Doctize license");
         assertThat(project.resolve("site/index.html")).exists();
         assertThat(project.resolve("site/architecture")).doesNotExist();
     }
@@ -94,7 +94,7 @@ class ArchitectureSystemTest {
 
         assertThat(license.exitCode()).isEqualTo(1);
         assertThat(license.out()).contains("Not usable:", "signature");
-        assertThat(generate.err()).contains("architecture map was skipped");
+        assertThat(generate.err()).contains("architecture diagrams were skipped");
         assertThat(project.resolve("site/architecture")).doesNotExist();
     }
 
@@ -127,7 +127,7 @@ class ArchitectureSystemTest {
         assertThat(show.out()).contains("Licensed to Test Licensee", "architecture: unlocked");
         assertThat(generate.exitCode()).as(generate.toString()).isZero();
         assertThat(generate.out()).contains("Licensed to Test Licensee");
-        assertThat(Files.readString(project.resolve("site/architecture/architecture.html"))).contains("<svg class=\"arch-map\"", "shop");
+        assertThat(Files.readString(project.resolve("site/architecture/architecture.html"))).contains("<pre class=\"mermaid\">flowchart TB", "shop");
         assertThat(SiteCrawler.check(project.resolve("site"), "")).isEmpty();
     }
 

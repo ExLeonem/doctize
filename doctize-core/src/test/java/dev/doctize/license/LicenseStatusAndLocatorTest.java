@@ -107,13 +107,13 @@ class LicenseStatusAndLocatorTest {
         LicenseStatus status = status(found(licenses.sign(TestLicenses.license(Set.of(), null))));
 
         assertThat(status.denialFor(Feature.ARCHITECTURE)).get().asString()
-                .contains("Acme Corp", "does not include the architecture map");
+                .contains("Acme Corp", "does not include the architecture diagrams");
     }
 
     @Test
     void noLicenseSaysWhereToPutOne() {
         assertThat(status(Optional.empty()).denialFor(Feature.ARCHITECTURE)).get().asString()
-                .contains("needs a Doctize license", "--license", "DOCTIZE_LICENSE", "doctize.license");
+                .contains("need a Doctize Pro license", "--license", "DOCTIZE_LICENSE", "doctize.license");
     }
 
     @Test

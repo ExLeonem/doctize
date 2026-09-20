@@ -152,8 +152,13 @@ shows, edit `api-type` or `member`.
 ## Adding behaviour
 
 The default scripts are small and independent: `search-engine.js` (the search), `search-ui.js` (the dialog),
-`app.js` (colour scheme, tabs, copy buttons, navigation drawer). Your `extraJs` runs after them, and
-`window.DoctizeSearch` is available if you want to build another search interface.
+`app.js` (colour scheme, tabs, copy buttons, navigation drawer) and `diagrams.js` (draws the Mermaid diagrams of a page). Your `extraJs`
+runs after them, and `window.DoctizeSearch` is available if you want to build another search interface.
+
+`diagrams.js` does nothing on a page without a diagram. On one with a diagram it loads the Mermaid library from
+`assets/vendor/mermaid.min.js`, which Doctize copies into the site. If your theme replaces `layout.mustache`, keep the script tag of
+`diagrams.js`, or diagrams stay as text. The diagrams take their colours from Mermaid's own themes, and switch with the mode of the site;
+the frame around them is styled with `.diagram` in the stylesheet.
 
 > [!NOTE]
 > Scripts are classic scripts, not modules, because browsers refuse to load modules from `file://`. Doctize

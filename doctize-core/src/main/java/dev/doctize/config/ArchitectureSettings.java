@@ -37,6 +37,8 @@ import java.util.Set;
  *     {@code com.fasterxml} libraries
  * @param minReferences the least number of references a dependency needs to be drawn on the map; the tables list all
  * @param direction which way the dependencies point on the map
+ * @param diagrams which kinds of diagram are drawn, and how: the overview, class diagrams, state diagrams, entity-relationship
+ *     diagrams and flow charts
  */
 @Doc(group = "Configuration", order = 27)
 public record ArchitectureSettings(
@@ -55,7 +57,8 @@ public record ArchitectureSettings(
         boolean external,
         int libraryDepth,
         int minReferences,
-        Direction direction) {
+        Direction direction,
+        DiagramSettings diagrams) {
 
     public static final String DEFAULT_TITLE = "Architecture";
     public static final int DEFAULT_ORDER = 100;
@@ -71,6 +74,7 @@ public record ArchitectureSettings(
         layers = layers == null ? List.of() : List.copyOf(layers);
         forbid = forbid == null ? List.of() : List.copyOf(forbid);
         direction = direction == null ? Direction.TOP_DOWN : direction;
+        diagrams = diagrams == null ? DiagramSettings.defaults() : diagrams;
         if (depth < 0) {
             throw new DoctizeException("architecture.depth must not be negative, but was " + depth);
         }
@@ -86,6 +90,28 @@ public record ArchitectureSettings(
                 throw new DoctizeException("architecture.components names " + component.name() + " twice");
             }
         }
+    }
+
+    /** The settings before the diagrams could be chosen: the overview only. */
+    public ArchitectureSettings(
+            boolean enabled,
+            String title,
+            String section,
+            int order,
+            String rootPackage,
+            int depth,
+            List<String> include,
+            List<String> exclude,
+            List<Component> components,
+            List<String> layers,
+            List<ForbiddenDependency> forbid,
+            boolean cycles,
+            boolean external,
+            int libraryDepth,
+            int minReferences,
+            Direction direction) {
+        this(enabled, title, section, order, rootPackage, depth, include, exclude, components, layers, forbid, cycles, external, libraryDepth,
+                minReferences, direction, null);
     }
 
     /** Reads the settings from YAML, where every setting is optional. */
@@ -106,7 +132,8 @@ public record ArchitectureSettings(
             @JsonProperty("external") Boolean external,
             @JsonProperty("libraryDepth") Integer libraryDepth,
             @JsonProperty("minReferences") Integer minReferences,
-            @JsonProperty("direction") Direction direction) {
+            @JsonProperty("direction") Direction direction,
+            @JsonProperty("diagrams") DiagramSettings diagrams) {
         return new ArchitectureSettings(
                 enabled != null && enabled,
                 title,
@@ -123,19 +150,49 @@ public record ArchitectureSettings(
                 external != null && external,
                 libraryDepth == null ? DEFAULT_LIBRARY_DEPTH : libraryDepth,
                 minReferences == null ? 1 : minReferences,
-                direction);
+                direction,
+                diagrams);
+    }
+
+    /** As {@code fromConfig} with the diagrams, for settings that do not choose any: the overview only. */
+    public static ArchitectureSettings fromConfig(
+            Boolean enabled,
+            String title,
+            String section,
+            Integer order,
+            String rootPackage,
+            Integer depth,
+            List<String> include,
+            List<String> exclude,
+            List<Component> components,
+            List<String> layers,
+            List<ForbiddenDependency> forbid,
+            Boolean cycles,
+            Boolean external,
+            Integer libraryDepth,
+            Integer minReferences,
+            Direction direction) {
+        return fromConfig(enabled, title, section, order, rootPackage, depth, include, exclude, components, layers, forbid, cycles, external,
+                libraryDepth, minReferences, direction, null);
     }
 
     /** The settings when there are none: the map is off. */
     public static ArchitectureSettings defaults() {
-        return fromConfig(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return fromConfig(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     /** The same settings, with the map switched on. */
     public ArchitectureSettings turnedOn() {
         return new ArchitectureSettings(
                 true, title, section, order, rootPackage, depth, include, exclude, components, layers, forbid,
-                cycles, external, libraryDepth, minReferences, direction);
+                cycles, external, libraryDepth, minReferences, direction, diagrams);
+    }
+
+    /** The same settings, with the switched-on architecture and this kind of diagram on. */
+    public ArchitectureSettings withDiagram(DiagramSettings.Kind kind) {
+        return new ArchitectureSettings(
+                true, title, section, order, rootPackage, depth, include, exclude, components, layers, forbid, cycles, external, libraryDepth,
+                minReferences, direction, diagrams.with(kind));
     }
 
     private static boolean blank(String text) {

@@ -62,13 +62,13 @@ public final class LicenseStatus {
         if (license != null) {
             return license.allows(feature)
                     ? Optional.empty()
-                    : Optional.of("The license of " + license.licensee() + " does not include the " + feature.title() + ".");
+                    : Optional.of("The license of " + license.licensee() + " does not include the " + feature.title() + ", which need a Pro license.");
         }
         if (!problem.isEmpty()) {
-            return Optional.of("The " + feature.title() + " needs a valid license, but the license from " + origin
+            return Optional.of("The " + feature.title() + " need a valid Doctize Pro license, but the license from " + origin
                     + " cannot be used. " + problem);
         }
-        return Optional.of("The " + feature.title() + " needs a Doctize license, and none was found. Pass one with --license,"
+        return Optional.of("The " + feature.title() + " need a Doctize Pro license, and none was found. Pass one with --license,"
                 + " set " + LicenseLocator.ENVIRONMENT_VARIABLE + ", or put " + LicenseLocator.FILE_NAME + " next to doctize.yml.");
     }
 

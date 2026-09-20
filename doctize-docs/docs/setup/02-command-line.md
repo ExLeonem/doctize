@@ -16,7 +16,7 @@ Builds the site.
 
 ```console
 doctize generate [-c <config>] [-m <model>]... [--classes <path>]... [-g <dir>] [-t <dir>] [-o <dir>]
-                 [--architecture] [--license <file>]
+                 [--architecture] [--diagram <kind>]... [--license <file>]
                  [--github-pages] [--base-url <url>] [--cname <domain>] [--fail-on-warnings] [--serve [--port <n>]]
 ```
 
@@ -24,8 +24,9 @@ doctize generate [-c <config>] [-m <model>]... [--classes <path>]... [-g <dir>] 
 |--------|---------|
 | `-c`, `--config` | The configuration file. By default `./doctize.yml` if it exists. |
 | `-m`, `--model` | Where the annotation processor left its output: a compiled classes directory such as `build/classes/java/main`, a `model.json` file, or a jar. Repeat the option for several modules. |
-| `--classes` | Compiled classes (a directory or a jar) for the [architecture map](../guides/08-architecture-map.md) to analyze, in addition to the `--model` locations. Repeat the option for several. Unlike `--model`, they need no documentation model. |
-| `--architecture` | Generates the architecture map, a licensed feature. Same as `architecture.enabled: true`. |
+| `--classes` | Compiled classes (a directory or a jar) for the [architecture diagrams](../guides/08-architecture-diagrams.md) to analyze, in addition to the `--model` locations. Repeat the option for several. Unlike `--model`, they need no documentation model. |
+| `--architecture` | Generates the architecture diagrams, a Pro feature. Same as `architecture.enabled: true`. |
+| `--diagram` | Switches on a kind of architecture diagram: `overview`, `classes`, `states`, `entities` or `flows`, in any case. Repeat it for several. Implies `--architecture`. |
 | `--license` | The [license](06-licensing.md) file. By default Doctize looks at `DOCTIZE_LICENSE`, `doctize.license` next to the configuration, and `~/.doctize/license`. |
 | `-g`, `--guides` | The directory with Markdown guides. Overrides `guides` in the configuration. |
 | `-t`, `--theme` | A custom theme directory. Overrides `theme.path`. |

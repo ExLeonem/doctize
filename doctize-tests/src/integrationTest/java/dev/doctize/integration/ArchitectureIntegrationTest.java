@@ -42,7 +42,7 @@ class ArchitectureIntegrationTest {
 
         assertThat(report.warnings()).isEmpty();
         String page = Files.readString(site.resolve("architecture/architecture.html"));
-        assertThat(page).contains("<svg class=\"arch-map\"", "shop", "payments", "Depends on");
+        assertThat(page).contains("<pre class=\"mermaid\">flowchart TB", "shop", "payments", "Depends on");
         assertThat(site.resolve("reference/shop.Cart.html")).as("the API reference is unaffected").exists();
         assertThat(SiteCrawler.check(site, "")).isEmpty();
     }
@@ -58,7 +58,7 @@ class ArchitectureIntegrationTest {
 
         assertThat(site.resolve("architecture")).doesNotExist();
         assertThat(site.resolve("reference/shop.Cart.html")).exists();
-        assertThat(report.warnings()).singleElement().asString().contains("architecture map was skipped", "none was found");
+        assertThat(report.warnings()).singleElement().asString().contains("architecture diagrams were skipped", "none was found");
         assertThat(SiteCrawler.check(site, "")).isEmpty();
     }
 

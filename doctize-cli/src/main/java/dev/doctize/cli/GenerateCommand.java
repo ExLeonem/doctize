@@ -4,6 +4,7 @@ import com.sun.net.httpserver.SimpleFileServer;
 import dev.doctize.Doctize;
 import dev.doctize.DoctizeException;
 import dev.doctize.GenerationReport;
+import dev.doctize.config.DiagramSettings;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
@@ -32,8 +33,13 @@ final class GenerateCommand implements Callable<Integer> {
             description = "Compiled classes (a directory or jar) for the architecture map to analyze, in addition to the --model locations. Repeatable.")
     private List<Path> classes = List.of();
 
-    @Option(names = "--architecture", description = "Generate the architecture map, a licensed feature. Same as architecture.enabled in the configuration.")
+    @Option(names = "--architecture", description = "Generate the architecture diagrams, a Pro feature. Same as architecture.enabled in the configuration.")
     private boolean architecture;
+
+    @Option(
+            names = "--diagram",
+            description = "Switch on a kind of architecture diagram: overview, classes, states, entities or flows. Repeatable. A Pro feature; implies --architecture.")
+    private List<String> diagrams = List.of();
 
     @Option(
             names = "--license",
@@ -103,6 +109,7 @@ final class GenerateCommand implements Callable<Integer> {
         if (architecture) {
             builder.architecture();
         }
+        diagrams.forEach(name -> builder.diagram(DiagramSettings.Kind.of(name)));
         if (license != null) {
             builder.license(license);
         }

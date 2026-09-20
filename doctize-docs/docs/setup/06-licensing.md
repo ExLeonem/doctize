@@ -6,14 +6,15 @@ keywords: [license, key, unlock, features, DOCTIZE_LICENSE, expiry]
 
 # Licensing
 
-Doctize is free to use: annotations, API reference, guides, theming, search and publishing all work without a
-license. A **license** unlocks the advanced features:
+Doctize is free to use: annotations, API reference, guides, theming, search, Mermaid diagrams that you write by hand, and publishing all
+work without a license. The **Pro features** need a **Doctize Pro license**, which you buy:
 
 | Feature | What it does | Guide |
 |---------|--------------|-------|
-| `architecture` | Maps out the architecture of a project: its packages, how they depend on each other, cycles, layers and rules. | [Architecture map](../guides/08-architecture-map.md) |
+| `architecture` | Draws the architecture of a project from its compiled code: the overview of packages, class diagrams, state diagrams, entity-relationship diagrams and flow charts, with cycle and rule checks. | [Architecture diagrams](../guides/08-architecture-diagrams.md) |
 
-A license is a small text file. It names who it was issued to, which features it unlocks and, optionally, the day it expires.
+Pro licenses are sold by the maintainers of Doctize; see the project's repository for how to get one. A license is a small text file. It
+names who it was issued to, which features it unlocks and, optionally, the day it expires.
 Doctize checks it on your machine, without a network connection: nothing about you, your project or your license is ever
 sent anywhere.
 
@@ -53,7 +54,7 @@ feature, and says why:
 ```console
 $ doctize generate --architecture
 Generated 12 pages in 4 sections → build/docs
-doctize: warning: The architecture map was skipped. The architecture map needs a Doctize license, and none was found. Pass one
+doctize: warning: The architecture diagrams were skipped. The architecture diagrams need a Doctize Pro license, and none was found. Pass one
 with --license, set DOCTIZE_LICENSE, or put doctize.license next to doctize.yml.
 ```
 
@@ -64,6 +65,9 @@ the map.
 
 A license is valid through its last day, in UTC. Features you are not licensed for are never switched on by accident:
 `architecture.enabled` is `false` until you set it.
+
+Doctize itself is free software under the Apache License 2.0, and Pro is a commercial license for the Pro features: it gives you the right
+to use them, and is checked in the code by the signature of the license, not by a server.
 
 ## For developers: checking licenses in code
 

@@ -23,7 +23,7 @@ final class CompiledSources {
         try {
             Path src = Files.createDirectories(work.resolve("src"));
             Path classes = Files.createDirectories(work.resolve("classes"));
-            List<String> arguments = new ArrayList<>(List.of("-d", classes.toString(), "-cp", System.getProperty("java.class.path"), "-proc:none", "-g"));
+            List<String> arguments = new ArrayList<>(List.of("-d", classes.toString(), "-cp", System.getProperty("java.class.path"), "-proc:none", "-g", "-parameters"));
             for (Map.Entry<String, String> source : sources.entrySet()) {
                 Path file = src.resolve(source.getKey().replace('.', '/') + ".java");
                 Files.createDirectories(file.getParent());

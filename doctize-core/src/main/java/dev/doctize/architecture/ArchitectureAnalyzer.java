@@ -6,6 +6,7 @@ import dev.doctize.architecture.ArchitectureModel.ExternalLibrary;
 import dev.doctize.architecture.ArchitectureModel.Node;
 import dev.doctize.architecture.ArchitectureModel.Violation;
 import dev.doctize.config.ArchitectureSettings;
+import dev.doctize.config.DiagramSettings.Kind;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -35,12 +36,42 @@ public final class ArchitectureAnalyzer {
 
     /** Analyzes the classes in the given directories and jars. */
     public ArchitectureModel analyze(List<Path> classRoots) {
-        List<ScannedClass> all = ClassScanner.mergeNestedClasses(ClassScanner.scan(classRoots));
+        return analyzeClasses(ClassScanner.scan(classRoots));
+    }
+
+    /** Analyzes classes that were scanned already, with what {@code @DiagramIgnore} and {@code @DiagramInclude} say about them. */
+    ArchitectureModel analyze(ClassScanner.Scan scan) {
+        DiagramScope scope = new DiagramScope(settings, scan);
+        Set<String> ignored = new HashSet<>();
+        Set<String> included = new HashSet<>();
+        for (TypeInfo type : scope.types()) {
+            switch (scope.effectiveMark(type, Kind.OVERVIEW)) {
+                case IGNORE -> ignored.add(type.name());
+                case INCLUDE -> included.add(type.name());
+                case NONE -> { }
+            }
+        }
+        return analyzeClasses(scan.types().stream().map(type -> new ScannedClass(type.name(), type.packageName(), type.references())).toList(), ignored, included);
+    }
+
+    private ArchitectureModel analyzeClasses(List<ScannedClass> found) {
+        return analyzeClasses(found, Set.of(), Set.of());
+    }
+
+    /**
+     * @param ignored the types that must not be part of the analysis; the types nested in them are not either
+     * @param included the types that are part of it although the configuration would leave them out
+     */
+    private ArchitectureModel analyzeClasses(List<ScannedClass> found, Set<String> ignored, Set<String> included) {
         Set<String> knownTypes = new HashSet<>();
+        found.forEach(scanned -> knownTypes.add(scanned.name()));
+        // An ignored type is still part of the project, so a dependency on it is not a dependency on a library.
+        List<ScannedClass> kept = found.stream().filter(scanned -> !isIgnored(scanned.name(), ignored)).toList();
+        List<ScannedClass> all = ClassScanner.mergeNestedClasses(kept);
         all.forEach(scanned -> knownTypes.add(scanned.name()));
-        List<ScannedClass> shown = all.stream().filter(scanned -> isShown(scanned.packageName())).toList();
+        List<ScannedClass> shown = all.stream().filter(scanned -> included.contains(scanned.name()) || isShown(scanned.packageName())).toList();
         String root = settings.rootPackage().isEmpty() ? commonPrefix(shown) : settings.rootPackage();
-        List<ScannedClass> inRoot = shown.stream().filter(scanned -> isBelow(scanned.packageName(), root)).toList();
+        List<ScannedClass> inRoot = shown.stream().filter(scanned -> included.contains(scanned.name()) || isBelow(scanned.packageName(), root)).toList();
         Set<String> shownTypes = new HashSet<>();
         inRoot.forEach(scanned -> shownTypes.add(scanned.name()));
 
@@ -101,6 +132,19 @@ public final class ArchitectureAnalyzer {
 
     // ---- what is shown, and how it is grouped
 
+    /** A type is ignored if it is marked so, or is nested in one that is: {@code com.acme.Order$Line} is ignored with {@code com.acme.Order}. */
+    private static boolean isIgnored(String name, Set<String> ignored) {
+        if (ignored.contains(name)) {
+            return true;
+        }
+        for (int dollar = name.indexOf('$', 1); dollar > 0; dollar = name.indexOf('$', dollar + 1)) {
+            if (ignored.contains(name.substring(0, dollar))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean isShown(String packageName) {
         boolean included = settings.include().isEmpty() || settings.include().stream().anyMatch(p -> PackagePattern.matches(p, packageName));
         return included && settings.exclude().stream().noneMatch(p -> PackagePattern.matches(p, packageName));
@@ -135,6 +179,10 @@ public final class ArchitectureAnalyzer {
             if (component.packages().stream().anyMatch(pattern -> PackagePattern.matches(pattern, packageName))) {
                 return component.name();
             }
+        }
+        // A type that is included by a mark can be outside the root package; it is then named by its whole package.
+        if (!isBelow(packageName, root)) {
+            return packageName;
         }
         String relative = packageName.equals(root) ? "" : packageName.substring(root.isEmpty() ? 0 : root.length() + 1);
         if (relative.isEmpty()) {
@@ -281,8 +329,9 @@ public final class ArchitectureAnalyzer {
 
     // ---- libraries
 
+    /** The annotations of Doctize are kept in the class file, but they are markers for these diagrams and no library of the project. */
     private static boolean isLibrary(String binaryName) {
-        return JDK_PREFIXES.stream().noneMatch(binaryName::startsWith) && binaryName.indexOf('.') > 0;
+        return JDK_PREFIXES.stream().noneMatch(binaryName::startsWith) && binaryName.indexOf('.') > 0 && !binaryName.startsWith(Marks.PACKAGE);
     }
 
     private String library(String binaryName) {
