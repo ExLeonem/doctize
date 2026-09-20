@@ -24,6 +24,11 @@ All notable changes to Doctize are documented in this file. The format follows
   Configured under `architecture:` in `doctize.yml`: `enabled`, `title`, `section`, `order`, `rootPackage`, `depth`, `include`,
   `exclude`, `components`, `layers`, `forbid`, `cycles`, `external`, `libraryDepth`, `minReferences`, `direction`.
   New `--architecture` and `--classes` options, `Doctize.Builder#architecture` and `classes`, and `architecture` in the Gradle plugin.
+- The guide *Architecture of Doctize* shows the packages of the generator as a diagram made from the code, and a test compares its table
+  and diagram with the code, so that the guide cannot go out of date unnoticed. The docs of Doctize have a section of their own, *Architecture*, holding this guide and, in a licensed build, the diagrams of the
+  code of all modules: package overview, class diagrams of the types the pipeline is made of, and flow charts of the main flows.
+- Flow entry points can be named in the configuration with a title, a description and their own depth (`entryPoints` accepts a mapping as well as
+  `Type#method`), so that code that carries no `@Flow` can have flows. The overview has its own `exclude`.
 - The documentation of Doctize describes its own architecture: the guide *Architecture of Doctize* (modules, the packages of the generator,
   the rules they follow, and the one cycle they do not), and, when the docs are built with a license, a *Live architecture map* of the
   current code. The docs build and the publishing workflow pick the license up (`doctize-docs/doctize.license`, `DOCTIZE_LICENSE`,

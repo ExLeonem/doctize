@@ -10,7 +10,7 @@ keywords: [architecture, pipeline, processor, model, design]
 
 Doctize is a pipeline of small, separate steps. Knowing them helps when something does not come out as you
 expected, and shows where to plug in your own code. How the code behind the steps is organised, in modules and packages,
-is the subject of [Architecture of Doctize](09-architecture-of-doctize.md).
+is the subject of [Architecture of Doctize](../architecture/architecture-of-doctize.md).
 
 ## 1. Compile: the annotation processor
 
@@ -54,6 +54,8 @@ The generator turns the model, and the guides directory, into {@link Page}s thro
 
 - The API source creates a page per `@Doc` type and a guide page per `@DocPage` element.
 - The guides source creates a page per Markdown file, reading its front matter and folder.
+- With a [Pro license](../setup/06-licensing.md), {@link ArchitecturePageSource} adds the pages of the
+  [architecture diagrams](08-architecture-diagrams.md). It does not use the model: it reads the compiled classes itself.
 - Any {@link PageSource} you register adds more.
 
 A page says *what* it wants (a section, an order, a title) but not *where* it ends up.
@@ -100,7 +102,8 @@ build/docs/
   api/dev.doctize.Doctize.html
   assets/
     css/theme.css            from the theme
-    js/*.js                  search and page behaviour
+    js/*.js                  search, diagrams and page behaviour
+    vendor/mermaid.min.js    the diagram library, only if a page has a diagram
     content/images/...       files from the guides directory
     custom/...               your extraCss and extraJs
   .doctize-site              marks the directory as generated, so that it may be cleaned

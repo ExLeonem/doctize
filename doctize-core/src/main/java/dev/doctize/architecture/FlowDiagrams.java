@@ -5,6 +5,7 @@ import dev.doctize.architecture.TypeInfo.AnnotationInfo;
 import dev.doctize.architecture.TypeInfo.Call;
 import dev.doctize.architecture.TypeInfo.MethodInfo;
 import dev.doctize.config.ArchitectureSettings.Direction;
+import dev.doctize.config.DiagramSettings.EntryPoint;
 import dev.doctize.config.DiagramSettings.FlowDiagram;
 import dev.doctize.config.DiagramSettings.Kind;
 import java.util.ArrayDeque;
@@ -37,6 +38,12 @@ final class FlowDiagrams {
 
     private record Edge(String from, String to, int order, boolean implementation) {}
 
+    /** The title and the description of a flow, from an annotation or from the configuration; both may be empty. */
+    private record Title(String name, String description, int depth) {
+
+        static final Title NONE = new Title("", "", 0);
+    }
+
     /** A flow while it is being followed. */
     private static final class Flow {
         final Map<String, MethodRef> nodes = new LinkedHashMap<>();
@@ -57,7 +64,7 @@ final class FlowDiagrams {
 
     DiagramResult generate() {
         List<Diagram> diagrams = new ArrayList<>();
-        for (Map.Entry<MethodRef, Optional<AnnotationInfo>> entry : entryPoints().entrySet()) {
+        for (Map.Entry<MethodRef, Title> entry : entryPoints().entrySet()) {
             diagrams.add(diagram(entry.getKey(), entry.getValue()));
         }
         return new DiagramResult(diagrams, warnings);
@@ -65,8 +72,8 @@ final class FlowDiagrams {
 
     // ---- where a flow starts
 
-    private Map<MethodRef, Optional<AnnotationInfo>> entryPoints() {
-        Map<MethodRef, Optional<AnnotationInfo>> entries = new LinkedHashMap<>();
+    private Map<MethodRef, Title> entryPoints() {
+        Map<MethodRef, Title> entries = new LinkedHashMap<>();
         for (TypeInfo type : scope.types()) {
             if (!scope.inScope(type, Kind.FLOWS)) {
                 continue;
@@ -74,14 +81,13 @@ final class FlowDiagrams {
             for (MethodInfo method : type.methods()) {
                 Optional<AnnotationInfo> flow = method.annotations().stream().filter(annotation -> annotation.type().equals(Marks.FLOW)).findFirst();
                 if (flow.isPresent() && !Marks.of(method.annotations(), Kind.FLOWS).ignored()) {
-                    entries.put(new MethodRef(type, method), flow);
+                    entries.put(new MethodRef(type, method), flow.map(a -> new Title(a.string("name", ""), a.string("description", ""), 0)).orElse(Title.NONE));
                 }
             }
         }
-        for (String pattern : settings.entryPoints()) {
-            int hash = pattern.lastIndexOf('#');
-            String typePattern = pattern.substring(0, hash);
-            String methodPattern = pattern.substring(hash + 1);
+        for (EntryPoint entry : settings.entryPoints()) {
+            String typePattern = entry.typePattern();
+            String methodPattern = entry.methodPattern();
             int matches = 0;
             for (TypeInfo type : scope.types()) {
                 if (!scope.inScope(type, Kind.FLOWS) || !PackagePattern.matches(typePattern, DiagramScope.patternName(type))) {
@@ -90,13 +96,13 @@ final class FlowDiagrams {
                 for (MethodInfo method : type.methods()) {
                     if (!method.isSynthetic() && !method.isStaticInitializer() && !method.isConstructor() && !method.isAbstract()
                             && !Marks.of(method.annotations(), Kind.FLOWS).ignored() && PackagePattern.matches(methodPattern, method.name())) {
-                        entries.putIfAbsent(new MethodRef(type, method), Optional.empty());
+                        entries.putIfAbsent(new MethodRef(type, method), new Title(entry.name(), entry.description(), entry.depth()));
                         matches++;
                     }
                 }
             }
             if (matches == 0) {
-                warnings.add("The entry point " + pattern + " of flows.entryPoints matches no method.");
+                warnings.add("The entry point " + entry.method() + " of flows.entryPoints matches no method.");
             }
         }
         return entries;
@@ -104,11 +110,12 @@ final class FlowDiagrams {
 
     // ---- following the calls
 
-    private Diagram diagram(MethodRef entry, Optional<AnnotationInfo> annotation) {
-        Flow flow = follow(entry);
+    private Diagram diagram(MethodRef entry, Title title) {
+        int depth = title.depth() > 0 ? title.depth() : settings.depth();
+        Flow flow = follow(entry, depth);
         String defaultName = entry.type().displayName() + "#" + entry.method().name();
-        String name = annotation.map(a -> a.string("name", "")).filter(text -> !text.isBlank()).orElse(defaultName);
-        String description = annotation.map(a -> a.string("description", "")).orElse("");
+        String name = title.name().isBlank() ? defaultName : title.name();
+        String description = title.description();
 
         Map<String, String> ids = new LinkedHashMap<>();
         flow.nodes.keySet().forEach(key -> ids.put(key, "n" + ids.size()));
@@ -140,8 +147,8 @@ final class FlowDiagrams {
             notes.add("The flow has more than " + settings.maxNodes() + " methods, so it is cut off. Raise flows.maxNodes, lower flows.depth, or leave types out with excludeTypes.");
         }
         if (!flow.cut.isEmpty()) {
-            notes.add("Calls deeper than " + settings.depth() + " levels are not followed; " + flow.cut.size() + " method" + (flow.cut.size() == 1 ? "" : "s")
-                    + " marked with … call further methods. Raise flows.depth to see them.");
+            notes.add("Calls deeper than " + depth + " level" + (depth == 1 ? "" : "s") + " are not followed; " + flow.cut.size() + " method" + (flow.cut.size() == 1 ? "" : "s")
+                    + " marked with … call further methods. Raise the depth to see them.");
         }
         if (flow.nodes.size() == 1) {
             notes.add("The method calls nothing that is part of the analyzed code.");
@@ -149,7 +156,7 @@ final class FlowDiagrams {
         return new Diagram(name, description, source.toString(), items, notes);
     }
 
-    private Flow follow(MethodRef entry) {
+    private Flow follow(MethodRef entry, int maxDepth) {
         Flow flow = new Flow();
         flow.nodes.put(entry.id(), entry);
         flow.depths.put(entry.id(), 0);
@@ -160,7 +167,7 @@ final class FlowDiagrams {
             MethodRef current = flow.nodes.get(currentId);
             int depth = flow.depths.get(currentId);
             List<MethodRef> callees = calleesOf(current);
-            if (depth >= settings.depth()) {
+            if (depth >= maxDepth) {
                 if (!callees.isEmpty()) {
                     flow.cut.add(currentId);
                 }

@@ -147,7 +147,9 @@ public final class ArchitectureAnalyzer {
 
     private boolean isShown(String packageName) {
         boolean included = settings.include().isEmpty() || settings.include().stream().anyMatch(p -> PackagePattern.matches(p, packageName));
-        return included && settings.exclude().stream().noneMatch(p -> PackagePattern.matches(p, packageName));
+        return included
+                && settings.exclude().stream().noneMatch(p -> PackagePattern.matches(p, packageName))
+                && settings.diagrams().overview().exclude().stream().noneMatch(p -> PackagePattern.matches(p, packageName));
     }
 
     private static boolean isBelow(String packageName, String root) {

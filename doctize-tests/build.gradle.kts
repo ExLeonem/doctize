@@ -69,6 +69,11 @@ val integrationTestTask = tasks.register<Test>("integrationTest") {
     testClassesDirs = integrationTest.output.classesDirs
     classpath = integrationTest.runtimeClasspath
     shouldRunAfter(tasks.named("test"))
+
+    // The guide "Architecture of Doctize" is checked against the code, so the test reads it.
+    val guides = rootProject.layout.projectDirectory.dir("doctize-docs/docs/architecture")
+    inputs.dir(guides).withPropertyName("architectureGuide")
+    systemProperty("doctize.docs.architecture", guides.asFile.path)
 }
 
 val systemTestTask = tasks.register<Test>("systemTest") {

@@ -2,6 +2,7 @@ package dev.doctize.architecture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.doctize.architecture.ArchitectureModel.Node;
 import dev.doctize.config.ArchitectureSettings;
 import java.nio.file.Path;
 import java.util.List;
@@ -74,6 +75,18 @@ class OverviewMermaidTest {
         String source = source("minReferences: 3");
 
         assertThat(source.lines().filter(line -> line.matches("  n\\d+ -->.*"))).hasSize(2);
+    }
+
+    @Test
+    void packagesCanBeLeftOutOfTheOverviewAloneAndStayInTheOtherDiagrams() {
+        ArchitectureSettings settings = TestSettings.architecture("cycles: true\ndiagrams:\n  overview:\n    exclude: [\"com.acme.infra\"]\n  classes: true");
+        ArchitectureModel model = new ArchitectureAnalyzer(settings).analyze(List.of(classes));
+
+        assertThat(model.nodes()).extracting(Node::name).containsExactly("api", "domain", "service");
+        assertThat(model.cycles()).as("the cycle went through the package that is left out").isEmpty();
+        ClassScanner.Scan scan = ClassScanner.scanTypes(List.of(classes));
+        DiagramResult classDiagrams = new ClassDiagrams(new DiagramScope(settings, scan), settings.diagrams().classes()).generate();
+        assertThat(classDiagrams.diagrams()).extracting(Diagram::heading).contains("com.acme.infra");
     }
 
     @Test

@@ -155,7 +155,7 @@ architecture:
 
 | Key | Options |
 |-----|---------|
-| `overview` | `enabled`, `format` |
+| `overview` | `enabled`, `format`, `exclude` |
 | `classes` | `enabled`, `title`, `groupBy`, `maxClasses`, `fields`, `fieldVisibility`, `methods`, `methodVisibility`, `constructors`, `accessors`, `stereotypes`, `inheritance`, `associations`, `dependencies`, `neighbours`, `onlyMarked`, `includeTypes`, `excludeTypes`, `direction` |
 | `states` | `enabled`, `title`, `events`, `direction`, `includeTypes`, `excludeTypes` |
 | `entities` | `enabled`, `title`, `columns`, `keys`, `relationships`, `tableNames`, `entityAnnotations`, `idAnnotations`, `onlyMarked`, `includeTypes`, `excludeTypes` |

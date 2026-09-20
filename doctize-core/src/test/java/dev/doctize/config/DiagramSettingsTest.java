@@ -182,7 +182,42 @@ class DiagramSettingsTest {
         assertThat(custom.accessors()).isTrue();
         assertThat(custom.numbered()).isFalse();
         assertThat(custom.direction()).isEqualTo(Direction.LEFT_RIGHT);
-        assertThat(custom.entryPoints()).containsExactly("com.acme.web.*Controller#*", "com.acme.jobs.Nightly#run");
+        assertThat(custom.entryPoints()).extracting(DiagramSettings.EntryPoint::method).containsExactly("com.acme.web.*Controller#*", "com.acme.jobs.Nightly#run");
+    }
+
+    @Test
+    void anEntryPointIsAStringOrAMappingWithATitleAndADescription() throws IOException {
+        DiagramSettings.FlowDiagram flows = load("""
+                flows:
+                  entryPoints:
+                    - com.acme.web.*Controller#*
+                    - method: com.acme.Checkout#run
+                      name: Check out
+                      description: From the cart to the receipt.
+                    - method: com.acme.Refund#run
+                      depth: 2
+                """).flows();
+
+        assertThat(flows.entryPoints()).hasSize(3);
+        assertThat(flows.entryPoints().get(0)).isEqualTo(new DiagramSettings.EntryPoint("com.acme.web.*Controller#*", "", ""));
+        assertThat(flows.entryPoints().get(1).name()).isEqualTo("Check out");
+        assertThat(flows.entryPoints().get(1).description()).isEqualTo("From the cart to the receipt.");
+        assertThat(flows.entryPoints().get(1).typePattern()).isEqualTo("com.acme.Checkout");
+        assertThat(flows.entryPoints().get(1).methodPattern()).isEqualTo("run");
+        assertThat(flows.entryPoints().get(2).name()).isEmpty();
+        assertThat(flows.entryPoints().get(2).depth()).as("its own depth").isEqualTo(2);
+        assertThat(flows.entryPoints().get(1).depth()).as("the depth of the flows").isZero();
+    }
+
+    @Test
+    void theOverviewCanLeaveOutPackagesThatTheOtherDiagramsKeep() throws IOException {
+        DiagramSettings diagrams = load("overview:\n  exclude: [\"com.acme\", \"**.internal\"]\nclasses: true");
+
+        assertThat(diagrams.overview().exclude()).containsExactly("com.acme", "**.internal");
+        assertThat(diagrams.overview().enabled()).isTrue();
+        assertThat(diagrams.classes().enabled()).isTrue();
+        assertThat(DiagramSettings.defaults().overview().exclude()).isEmpty();
+        assertThat(DiagramSettings.defaults().with(Kind.OVERVIEW).overview().exclude()).isEmpty();
     }
 
     @Test
@@ -226,6 +261,8 @@ class DiagramSettingsTest {
         assertThatThrownBy(() -> load("flows:\n  depth: 0")).hasMessageContaining("depth must be at least 1");
         assertThatThrownBy(() -> load("flows:\n  maxNodes: 1")).hasMessageContaining("maxNodes must be at least 2");
         assertThatThrownBy(() -> load("flows:\n  entryPoints: [com.acme.Checkout]")).hasMessageContaining("Type#method");
+        assertThatThrownBy(() -> load("flows:\n  entryPoints:\n    - name: No method\n")).hasMessageContaining("Type#method");
+        assertThatThrownBy(() -> load("flows:\n  entryPoints:\n    - method: a.B#c\n      depth: -1\n")).hasMessageContaining("depth of the entry point a.B#c must be at least 1");
         assertThatThrownBy(() -> load("overview:\n  format: png")).hasMessageContaining("format must be one of mermaid, svg");
     }
 

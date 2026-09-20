@@ -217,6 +217,26 @@ class FlowDiagramsTest {
     }
 
     @Test
+    void anEntryPointCanHaveATitleAndADescriptionInTheConfigurationInsteadOfAnAnnotation() {
+        DiagramResult result = generate("entryPoints:\n  - method: app.jobs.Nightly#run\n    name: The nightly job\n    description: Runs while everybody sleeps.\n  - app.web.OrderController#nothing");
+
+        assertThat(flow(result, "The nightly job").description()).isEqualTo("Runs while everybody sleeps.");
+        assertThat(flow(result, "The nightly job").source()).contains("Nightly.run()");
+        assertThat(result.diagrams()).extracting(Diagram::heading).as("no title, so the name of the method").contains("Place an order", "OrderController#nothing");
+        assertThat(result.diagrams().stream().filter(d -> d.heading().equals("OrderController#nothing"))).as("annotated and named: one flow").hasSize(1);
+    }
+
+    @Test
+    void anEntryPointCanHaveItsOwnDepth() {
+        DiagramResult result = generate("depth: 8\nentryPoints:\n  - method: app.jobs.Nightly#run\n    name: Shallow\n    depth: 1\n  - method: app.web.OrderController#place\n    name: Deep");
+        Diagram shallow = flow(result, "Shallow");
+
+        assertThat(shallow.source()).contains("OrderService.create()").doesNotContain("Mailer");
+        assertThat(shallow.notes()).anyMatch(note -> note.contains("deeper than 1 level ") && note.contains("Raise the depth"));
+        assertThat(flow(result, "Place an order").source()).as("the annotated flow uses the depth of the flows").contains("Mailer.deep3()");
+    }
+
+    @Test
     void anEntryPointThatMatchesNothingIsAWarning() {
         assertThat(generate("entryPoints: [\"app.jobs.Nightly#missing\", \"app.nothing.*#run\"]").warnings())
                 .anyMatch(warning -> warning.contains("app.jobs.Nightly#missing") && warning.contains("matches no method"))

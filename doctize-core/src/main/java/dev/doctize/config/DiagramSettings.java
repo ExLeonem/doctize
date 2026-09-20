@@ -116,30 +116,38 @@ public record DiagramSettings(
      *
      * @param enabled whether to draw it
      * @param format how it is drawn
+     * @param exclude packages that are left out of the overview only, as patterns, in addition to the {@code exclude} of all diagrams. The
+     *     root package, which every package depends on for its exception, is a candidate: it would be a hub in the overview, but the
+     *     classes in it are still there for the other diagrams
      */
     @Doc(group = "Configuration", order = 29)
-    public record OverviewDiagram(boolean enabled, Format format) {
+    public record OverviewDiagram(boolean enabled, Format format, List<String> exclude) {
 
         public OverviewDiagram {
             format = format == null ? Format.MERMAID : format;
+            exclude = exclude == null ? List.of() : List.copyOf(exclude);
         }
 
         public static OverviewDiagram defaults() {
-            return new OverviewDiagram(true, Format.MERMAID);
+            return new OverviewDiagram(true, Format.MERMAID, null);
         }
 
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         public static OverviewDiagram ofFlag(boolean enabled) {
-            return new OverviewDiagram(enabled, Format.MERMAID);
+            return new OverviewDiagram(enabled, Format.MERMAID, null);
         }
 
         @JsonCreator
-        public static OverviewDiagram fromConfig(@JsonProperty("enabled") Boolean enabled, @JsonProperty("format") String format) {
-            return new OverviewDiagram(enabled == null || enabled, format == null ? Format.MERMAID : Enums.parse(Format.class, format, "architecture.diagrams.overview.format"));
+        public static OverviewDiagram fromConfig(
+                @JsonProperty("enabled") Boolean enabled, @JsonProperty("format") String format, @JsonProperty("exclude") List<String> exclude) {
+            return new OverviewDiagram(
+                    enabled == null || enabled,
+                    format == null ? Format.MERMAID : Enums.parse(Format.class, format, "architecture.diagrams.overview.format"),
+                    exclude);
         }
 
         OverviewDiagram turnedOn() {
-            return new OverviewDiagram(true, format);
+            return new OverviewDiagram(true, format, exclude);
         }
     }
 
@@ -406,8 +414,8 @@ public record DiagramSettings(
      * @param accessors whether calls of getters and setters are shown
      * @param numbered whether the arrows are numbered in the order of the calls
      * @param direction which way the charts are laid out
-     * @param entryPoints methods that start a flow in addition to those marked with {@code @Flow}, written {@code Type#method}, where
-     *     the type is a pattern for a class name and the method a pattern for a method name
+     * @param entryPoints methods that start a flow in addition to those marked with {@code @Flow}, each written {@code Type#method}, where
+     *     the type is a pattern for a class name and the method a pattern for a method name, or as a mapping with a title, a description and a depth
      * @param includeTypes only methods of types that match one of these patterns are followed; empty for all
      * @param excludeTypes methods of types that match one of these patterns are not followed
      */
@@ -422,7 +430,7 @@ public record DiagramSettings(
             boolean accessors,
             boolean numbered,
             Direction direction,
-            List<String> entryPoints,
+            List<EntryPoint> entryPoints,
             List<String> includeTypes,
             List<String> excludeTypes) {
 
@@ -441,11 +449,6 @@ public record DiagramSettings(
             }
             if (maxNodes < 2) {
                 throw new DoctizeException("architecture.diagrams.flows.maxNodes must be at least 2, but was " + maxNodes);
-            }
-            for (String entry : entryPoints) {
-                if (entry.indexOf('#') < 0) {
-                    throw new DoctizeException("An entry of architecture.diagrams.flows.entryPoints is written Type#method, but was: " + entry);
-                }
             }
         }
 
@@ -469,7 +472,7 @@ public record DiagramSettings(
                 @JsonProperty("accessors") Boolean accessors,
                 @JsonProperty("numbered") Boolean numbered,
                 @JsonProperty("direction") Direction direction,
-                @JsonProperty("entryPoints") List<String> entryPoints,
+                @JsonProperty("entryPoints") List<EntryPoint> entryPoints,
                 @JsonProperty("includeTypes") List<String> includeTypes,
                 @JsonProperty("excludeTypes") List<String> excludeTypes) {
             return new FlowDiagram(
@@ -490,6 +493,62 @@ public record DiagramSettings(
         FlowDiagram turnedOn() {
             return new FlowDiagram(true, title, depth, maxNodes, implementations, constructors, accessors, numbered, direction, entryPoints, includeTypes,
                     excludeTypes);
+        }
+    }
+
+    /**
+     * A method that starts a flow, named in the configuration. In {@code doctize.yml} it is written as {@code Type#method}, or as a
+     * mapping with {@code method}, {@code name} and {@code description}. This is the way to start a flow in code that carries no
+     * {@code @Flow}, for instance because the annotations are not a dependency of that code.
+     *
+     * @param method {@code Type#method}, where the type is a pattern for a class name and the method a pattern for a method name; a
+     *     pattern that matches several methods starts several flows
+     * @param name the title of the flow; empty for the name of the class and the method
+     * @param description what happens in the flow, shown above its chart; may be empty
+     * @param depth how many calls deep this flow is followed; {@code 0} for the {@code depth} of the flows. A flow that fans out
+     *     widely is clearer with a small depth, a flow that goes deep with a large one
+     */
+    @Doc(group = "Configuration", order = 29)
+    public record EntryPoint(String method, String name, String description, int depth) {
+
+        public EntryPoint {
+            if (method == null || method.indexOf('#') < 0) {
+                throw new DoctizeException("An entry of architecture.diagrams.flows.entryPoints is written Type#method, but was: " + method);
+            }
+            if (depth < 0) {
+                throw new DoctizeException("The depth of the entry point " + method + " must be at least 1, but was " + depth);
+            }
+            name = name == null ? "" : name;
+            description = description == null ? "" : description;
+        }
+
+        /** An entry point with the default depth. */
+        public EntryPoint(String method, String name, String description) {
+            this(method, name, description, 0);
+        }
+
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        public static EntryPoint ofMethod(String method) {
+            return new EntryPoint(method, "", "", 0);
+        }
+
+        @JsonCreator
+        public static EntryPoint fromConfig(
+                @JsonProperty("method") String method,
+                @JsonProperty("name") String name,
+                @JsonProperty("description") String description,
+                @JsonProperty("depth") Integer depth) {
+            return new EntryPoint(method, name, description, depth == null ? 0 : depth);
+        }
+
+        /** The type pattern: everything before the last {@code #}. */
+        public String typePattern() {
+            return method.substring(0, method.lastIndexOf('#'));
+        }
+
+        /** The method pattern: everything after the last {@code #}. */
+        public String methodPattern() {
+            return method.substring(method.lastIndexOf('#') + 1);
         }
     }
 }

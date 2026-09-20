@@ -57,7 +57,8 @@ doctize {
 
 Doctize analyzes the class directories and jars you already give it with `--model`. Give more with `--classes`, for example for modules
 that have nothing to document, and therefore no model. The Gradle plugin passes the classes of the project. Every enabled kind adds a page
-to the section *Architecture*, after the others; the settings `title`, `section` and `order` are described below.
+to a section of its own, *Architecture*, which is a header in the navigation next to the others; the settings `title`, `section` and `order`
+are described below.
 
 ## How the diagrams are made
 
@@ -238,8 +239,9 @@ All options are optional and set under `architecture:` in `doctize.yml`; they ma
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `diagrams.overview` | `true` | `true`, `false`, or a mapping with `enabled` and `format`. |
+| `diagrams.overview` | `true` | `true`, `false`, or a mapping with `enabled`, `format` and `exclude`. |
 | `diagrams.overview.format` | `mermaid` | `mermaid`, or `svg` for a diagram that needs no script. |
+| `diagrams.overview.exclude` | none | Package patterns that are left out of the overview *only*, on top of `exclude` for all diagrams. The classes stay in the other diagrams. |
 | [`depth`](#depth) | `0` | How many package levels below the root are shown separately; deeper packages are merged. `0` shows all. |
 | [`components`](#components) | none | Named groups of packages, drawn as one box each. |
 | [`layers`](#layers) | none | Parts or packages from the top of the architecture to the bottom. Dependencies pointing upwards are reported. |
@@ -554,7 +556,7 @@ with `…`.
 | `accessors` | `false` | Show calls of getters and setters. |
 | `numbered` | `true` | Number the arrows in the order of the calls. |
 | `direction` | `top-down` | `top-down` or `left-right`. |
-| `entryPoints` | none | Methods that start a flow in addition to those marked with `@Flow`, written `Type#method`, both as patterns: `com.acme.web.*Controller#*`. |
+| `entryPoints` | none | Methods that start a flow in addition to those marked with `@Flow`, written `Type#method`, both as patterns: `com.acme.web.*Controller#*`. Each is a string, or a mapping with `method`, `name`, `description` and `depth`, see below. |
 | `includeTypes` | all | Only methods of types that match one of these patterns are followed. |
 | `excludeTypes` | none | Methods of types that match one of these patterns are not followed. |
 
@@ -563,9 +565,19 @@ architecture:
   diagrams:
     flows:
       depth: 5
-      entryPoints: ["com.acme.web.*Controller#*"]
+      entryPoints:
+        - com.acme.web.*Controller#*                # a string: one flow per method that matches
+        - method: com.acme.jobs.Nightly#run         # a mapping: with a title, a description and its own depth
+          name: The nightly job
+          description: Runs while everybody sleeps.
+          depth: 2
       excludeTypes: ["**.logging.**"]
 ```
+
+An entry point in the configuration needs no annotation, which is the way to draw the flows of code that must not carry one, for
+example because it is compiled with `-Xlint:all -Werror` and does not have the annotations on its class path. The `depth` of an entry point
+replaces the `depth` of the flows for that chart: a method that calls many others is clearest one level deep, and a flow through many layers
+needs more.
 
 ## Cycles and rules in the build
 

@@ -41,9 +41,18 @@ val homeLicenseFile = File(System.getProperty("user.home"), ".doctize/license")
 val environmentLicense = providers.environmentVariable("DOCTIZE_LICENSE").orElse("")
 val licensed = environmentLicense.get().isNotBlank() || licenseFile.isFile || homeLicenseFile.isFile
 
+// The architecture diagrams look at every module, not only at the two whose sources are compiled here.
+val analyzedModules = listOf(":doctize-cli", ":doctize-processor", ":doctize-gradle-plugin", ":doctize-licensing")
+
 tasks.named<JavaExec>("generateDocs") {
     if (licensed) {
         args("--architecture")
+        analyzedModules.forEach { path ->
+            val classes = project(path).layout.buildDirectory.dir("classes/java/main")
+            dependsOn("$path:classes")
+            inputs.dir(classes).withPropertyName("classesOf" + path.removePrefix(":").replace('-', '_'))
+            args("--classes", classes.get().asFile.path)
+        }
     }
     // A license that appears, changes or goes away changes the site, so it is an input. The one in the environment only as a hash.
     inputs.property("architectureMap", licensed)
