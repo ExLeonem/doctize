@@ -1,5 +1,9 @@
 package dev.doctize.gradle;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
@@ -65,6 +69,9 @@ public class DoctizePlugin implements Plugin<Project> {
             task.getGuides().convention(doctize.getGuides());
             task.getTheme().convention(doctize.getTheme());
             task.getAdditionalInputs().from(doctize.getAdditionalInputs());
+            task.getLicense().convention(doctize.getLicense());
+            task.getArchitecture().convention(doctize.getArchitecture());
+            task.getEnvironmentLicense().convention(project.getProviders().environmentVariable("DOCTIZE_LICENSE").map(DoctizePlugin::fingerprint));
             task.getOutput().convention(doctize.getOutput());
             task.getGithubPages().convention(doctize.getGithubPages());
             task.getBaseUrl().convention(doctize.getBaseUrl());
@@ -90,7 +97,12 @@ public class DoctizePlugin implements Plugin<Project> {
             Directory directory = layout.getProjectDirectory().dir("docs");
             return directory.getAsFile().isDirectory() ? directory : null;
         }));
+        doctize.getLicense().convention(providers.provider(() -> {
+            RegularFile file = layout.getProjectDirectory().file("doctize.license");
+            return file.getAsFile().isFile() ? file : null;
+        }));
         doctize.getOutput().convention(layout.getBuildDirectory().dir("docs"));
+        doctize.getArchitecture().convention(false);
         doctize.getGithubPages().convention(false);
         doctize.getFailOnWarnings().convention(false);
         // The scaffold of `doctize init --github-pages` passes the address of the site this way.
@@ -109,6 +121,18 @@ public class DoctizePlugin implements Plugin<Project> {
         Provider<List<Dependency>> dependencies = doctize.getAddDependencies().zip(doctize.getVersion(),
                 (enabled, version) -> enabled ? List.of(project.getDependencies().create(artifact(module, version))) : List.of());
         project.getConfigurations().getByName(configuration).getDependencies().addAllLater(dependencies);
+    }
+
+    /**
+     * The license in the environment is an input of the task: without it a license that appears or changes would not run the task
+     * again. Only a hash is recorded, so that the license itself does not end up in Gradle's caches.
+     */
+    static String fingerprint(String license) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(license.strip().getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /** Splits the value of the {@code doctizeArgs} project property at whitespace. */

@@ -8,6 +8,21 @@ All notable changes to Doctize are documented in this file. The format follows
 
 ### Added
 
+- A license mechanism. A license is a signed text file (Ed25519) that Doctize checks offline, and that unlocks features. It is found
+  through `--license`, `DOCTIZE_LICENSE`, `doctize.license` next to the configuration or `~/.doctize/license`. A licensed feature that
+  was switched on without a usable license is skipped with a warning. New `doctize license` command; `Doctize.Builder#license`,
+  `licenseKey`, `licenseVerifier`; `GenerationReport#license`; the `license` setting of the Gradle plugin.
+- The architecture map, the first licensed feature. It reads compiled classes, finds the dependencies between packages, and adds a
+  page with a diagram, tables, dependency cycles, layers and forbidden dependencies. Cycles and broken rules are warnings.
+  Configured under `architecture:` in `doctize.yml`: `enabled`, `title`, `section`, `order`, `rootPackage`, `depth`, `include`,
+  `exclude`, `components`, `layers`, `forbid`, `cycles`, `external`, `libraryDepth`, `minReferences`, `direction`.
+  New `--architecture` and `--classes` options, `Doctize.Builder#architecture` and `classes`, and `architecture` in the Gradle plugin.
+- The documentation of Doctize describes its own architecture: the guide *Architecture of Doctize* (modules, the packages of the generator,
+  the rules they follow, and the one cycle they do not), and, when the docs are built with a license, a *Live architecture map* of the
+  current code. The docs build and the publishing workflow pick the license up (`doctize-docs/doctize.license`, `DOCTIZE_LICENSE`,
+  `~/.doctize/license`); without one the page is left out and the build is unchanged.
+- `doctize-licensing`, the vendor's tool for creating the signing key and issuing licenses. It is not published.
+
 - The Gradle plugin `dev.doctize` (`doctize-gradle-plugin`). In a Java project it adds the annotations and the annotation
   processor, and the `generateDocs` task, which compiles the code and runs the command line tool on a Java 25 toolchain.
   A `doctize { }` block, and the task options `--github-pages`, `--base-url`, `--custom-domain` and `--fail-on-warnings`,

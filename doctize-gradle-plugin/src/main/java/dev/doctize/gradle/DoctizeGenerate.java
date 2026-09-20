@@ -64,6 +64,20 @@ public abstract class DoctizeGenerate extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getAdditionalInputs();
 
+    @Optional
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract RegularFileProperty getLicense();
+
+    /** A hash of the license in the environment, if there is one. It is here so that a changed license runs the task again. */
+    @Optional
+    @Input
+    public abstract Property<String> getEnvironmentLicense();
+
+    @Input
+    @Option(option = "architecture", description = "Generates the architecture map. This is a licensed feature.")
+    public abstract Property<Boolean> getArchitecture();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutput();
 
@@ -103,6 +117,10 @@ public abstract class DoctizeGenerate extends DefaultTask {
         List<String> arguments = CliArguments.generate()
                 .option("--config", getConfig().getAsFile().getOrNull())
                 .options("--model", models)
+                // A module with nothing to document has no model, but still belongs to the architecture.
+                .options("--classes", getModels().getFiles().stream().filter(File::exists).toList())
+                .flag("--architecture", getArchitecture().get())
+                .option("--license", getLicense().getAsFile().getOrNull())
                 .option("--guides", getGuides().getAsFile().getOrNull())
                 .option("--theme", getTheme().getAsFile().getOrNull())
                 .option("--output", getOutput().get().getAsFile())

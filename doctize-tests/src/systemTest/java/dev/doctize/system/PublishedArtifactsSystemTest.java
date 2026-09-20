@@ -217,6 +217,24 @@ class PublishedArtifactsSystemTest {
     }
 
     @Test
+    void theCoreJarCarriesThePublicKeyThatChecksLicensesAndNothingThatCanIssueThem() throws Exception {
+        Path core = file("core", ".jar");
+
+        try (JarFile jar = new JarFile(core.toFile())) {
+            String key = new String(jar.getInputStream(jar.getEntry("dev/doctize/license/vendor-public-key.pem")).readAllBytes());
+            assertThat(key).startsWith("-----BEGIN PUBLIC KEY-----").doesNotContain("PRIVATE");
+        }
+        assertThat(entries(core)).contains("dev/doctize/license/LicenseVerifier.class", "dev/doctize/license/License.class",
+                "dev/doctize/architecture/ArchitecturePageSource.class")
+                .noneMatch(entry -> entry.contains("LicenseIssuer") || entry.contains("LicenseTool") || entry.endsWith("private-key.pem"));
+        assertThat(STAGING.resolve("dev/doctize/doctize-licensing")).as("the tool that issues licenses is not published").doesNotExist();
+        for (String module : List.of("annotations", "processor", "core", "cli", "gradle-plugin")) {
+            assertThat(entries(file(module, ".jar"))).as(module).noneMatch(entry -> entry.contains("LicenseIssuer") || entry.contains("licensing/"));
+        }
+        assertThat(dependencies("cli")).as("the command does not need the tool that issues licenses").noneMatch(dependency -> dependency.contains("licensing"));
+    }
+
+    @Test
     void theCliJarKnowsItsOwnVersion() throws IOException {
         try (JarFile file = new JarFile(file("cli", ".jar").toFile())) {
             String properties = new String(file.getInputStream(file.getEntry("dev/doctize/cli/version.properties")).readAllBytes());

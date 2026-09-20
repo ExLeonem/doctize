@@ -57,6 +57,16 @@ public abstract class DoctizeExtension {
     /** Files the configuration reads that are not named by another setting, e.g. {@code theme.extraCss}. They make the task run again when they change. */
     public abstract ConfigurableFileCollection getAdditionalInputs();
 
+    /**
+     * The license file, which unlocks licensed features such as the architecture map. Default: {@code doctize.license} in the
+     * project directory if it exists; otherwise the tool looks at the environment variable {@code DOCTIZE_LICENSE} and at
+     * {@code ~/.doctize/license}.
+     */
+    public abstract RegularFileProperty getLicense();
+
+    /** Generates the architecture map, a licensed feature. Default: false; {@code architecture.enabled} in {@code doctize.yml} does the same. */
+    public abstract Property<Boolean> getArchitecture();
+
     /** Prepares the output for GitHub Pages. Default: false. */
     public abstract Property<Boolean> getGithubPages();
 

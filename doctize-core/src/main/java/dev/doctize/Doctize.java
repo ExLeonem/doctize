@@ -1,8 +1,13 @@
 package dev.doctize;
 
 import dev.doctize.annotations.Doc;
+import dev.doctize.architecture.ArchitecturePageSource;
 import dev.doctize.config.ConfigLoader;
 import dev.doctize.config.DoctizeConfig;
+import dev.doctize.license.Feature;
+import dev.doctize.license.LicenseLocator;
+import dev.doctize.license.LicenseStatus;
+import dev.doctize.license.LicenseVerifier;
 import dev.doctize.config.SectionSpec;
 import dev.doctize.hosting.BaseUrl;
 import dev.doctize.hosting.HostingFiles;
@@ -24,9 +29,11 @@ import dev.doctize.theme.TemplateEngine;
 import dev.doctize.theme.Theme;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Generates a documentation site from the Javadoc of annotated types and from Markdown guides.
@@ -56,6 +63,12 @@ public final class Doctize {
     private final Path themeDirectory;
     private final Path outputDirectory;
     private final List<PageSource> extraSources;
+    private final List<Path> classLocations;
+    private final Path licenseFile;
+    private final String licenseKey;
+    private final LicenseVerifier licenseVerifier;
+    private final Map<String, String> licenseEnvironment;
+    private final Path licenseHome;
 
     private Doctize(Builder builder) {
         this.baseDirectory = builder.baseDirectory;
@@ -65,6 +78,12 @@ public final class Doctize {
         this.themeDirectory = builder.themeDirectory != null ? builder.themeDirectory : resolveConfigured(config.theme().path());
         this.outputDirectory = builder.outputDirectory;
         this.extraSources = List.copyOf(builder.extraSources);
+        this.classLocations = List.copyOf(builder.classLocations);
+        this.licenseFile = builder.licenseFile;
+        this.licenseKey = builder.licenseKey;
+        this.licenseVerifier = builder.licenseVerifier != null ? builder.licenseVerifier : LicenseVerifier.vendor();
+        this.licenseEnvironment = builder.licenseEnvironment != null ? builder.licenseEnvironment : System.getenv();
+        this.licenseHome = builder.licenseEnvironment != null ? builder.licenseHome : Path.of(System.getProperty("user.home"));
     }
 
     public static Builder builder() {
@@ -74,7 +93,11 @@ public final class Doctize {
     /** Generates the site into the output directory. */
     public GenerationReport generate() {
         GuideDirectory guides = guidesDirectory == null ? null : new GuideDirectory(guidesDirectory);
-        Site site = new SiteAssembler(config).assemble(collectPages(guides), guides == null ? "" : guides.intro());
+        LicenseStatus license = LicenseStatus.of(
+                LicenseLocator.locate(licenseFile, licenseKey, baseDirectory, licenseEnvironment, licenseHome), licenseVerifier);
+        List<String> licenseWarnings = new ArrayList<>();
+        ArchitecturePageSource architecture = architectureSource(license, licenseWarnings);
+        Site site = new SiteAssembler(config).assemble(collectPages(guides, architecture), guides == null ? "" : guides.intro());
         if (site.pages().isEmpty()) {
             throw new DoctizeException("Nothing to document: no annotated types were found in the model"
                     + " and no guides were provided.");
@@ -104,7 +127,27 @@ public final class Doctize {
                 baseUrl);
         int pages = writer.write();
         new HostingFiles(output, hosting, baseUrl).write(site);
-        return new GenerationReport(pages, site.sections().size(), output.root(), warnings(renderer, hosting, baseUrl));
+        List<String> warnings = warnings(renderer, hosting, baseUrl);
+        warnings.addAll(licenseWarnings);
+        if (architecture != null) {
+            warnings.addAll(architecture.warnings());
+        }
+        return new GenerationReport(pages, site.sections().size(), output.root(), warnings, license.license());
+    }
+
+    /** The architecture map is only generated if it is switched on and the license allows it; otherwise the reason is a warning. */
+    private ArchitecturePageSource architectureSource(LicenseStatus license, List<String> warnings) {
+        if (!config.architecture().enabled()) {
+            return null;
+        }
+        Optional<String> denial = license.denialFor(Feature.ARCHITECTURE);
+        if (denial.isPresent()) {
+            warnings.add("The architecture map was skipped. " + denial.get());
+            return null;
+        }
+        Set<Path> roots = new LinkedHashSet<>(classLocations);
+        modelLocations.stream().filter(location -> !location.getFileName().toString().endsWith(".json")).forEach(roots::add);
+        return new ArchitecturePageSource(config.architecture(), List.copyOf(roots));
     }
 
     private static List<String> warnings(PageRenderer renderer, HostingSettings hosting, Optional<BaseUrl> baseUrl) {
@@ -116,12 +159,15 @@ public final class Doctize {
         return warnings;
     }
 
-    private List<Page> collectPages(GuideDirectory guides) {
+    private List<Page> collectPages(GuideDirectory guides, ArchitecturePageSource architecture) {
         List<SourceModel> models = modelLocations.stream().map(ModelLocator::load).toList();
         List<PageSource> sources = new ArrayList<>();
         sources.add(new ApiPageSource(models, config.api()));
         if (guides != null) {
             sources.add(guides);
+        }
+        if (architecture != null) {
+            sources.add(architecture);
         }
         sources.addAll(extraSources);
         return sources.stream().flatMap(source -> source.pages().stream()).toList();
@@ -164,6 +210,13 @@ public final class Doctize {
         private final List<Path> modelLocations = new ArrayList<>();
         private final List<SectionSpec> sections = new ArrayList<>();
         private final List<PageSource> extraSources = new ArrayList<>();
+        private final List<Path> classLocations = new ArrayList<>();
+        private Path licenseFile;
+        private String licenseKey;
+        private LicenseVerifier licenseVerifier;
+        private Map<String, String> licenseEnvironment;
+        private Path licenseHome;
+        private boolean architecture;
         private Path guidesDirectory;
         private Path themeDirectory;
         private Path outputDirectory = Path.of("build", "docs");
@@ -194,6 +247,53 @@ public final class Doctize {
         /** Adds the compiled output of a module (or a model file or jar) to document. May be called repeatedly. */
         public Builder model(Path location) {
             this.modelLocations.add(location);
+            return this;
+        }
+
+        /**
+         * Adds compiled classes (a directory or a jar) for the architecture map to analyze. The locations given to
+         * {@link #model(Path)} are analyzed as well, so this is for classes that have nothing to document, such as a
+         * module without annotated types. May be called repeatedly.
+         */
+        public Builder classes(Path location) {
+            this.classLocations.add(location);
+            return this;
+        }
+
+        /** Switches the architecture map on, as {@code architecture.enabled: true} does. It needs a license. */
+        public Builder architecture() {
+            this.architecture = true;
+            return this;
+        }
+
+        /** Uses the license in this file, instead of searching for one. */
+        public Builder license(Path file) {
+            this.licenseFile = file;
+            return this;
+        }
+
+        /** Uses this license, given as text, instead of searching for one. */
+        public Builder licenseKey(String license) {
+            this.licenseKey = license;
+            return this;
+        }
+
+        /**
+         * Checks licenses with another verifier than the one of the vendor of Doctize, for example one for the licenses
+         * of a product you build on Doctize.
+         */
+        public Builder licenseVerifier(LicenseVerifier verifier) {
+            this.licenseVerifier = verifier;
+            return this;
+        }
+
+        /**
+         * Where to search for a license, if none is given: these environment variables and this home directory instead of the
+         * real ones. Mostly for tests, which must not depend on the license of whoever runs them.
+         */
+        public Builder licenseSearch(Map<String, String> environment, Path home) {
+            this.licenseEnvironment = Map.copyOf(environment);
+            this.licenseHome = home;
             return this;
         }
 
@@ -271,7 +371,8 @@ public final class Doctize {
                     config.guides(),
                     config.defaultSection(),
                     config.api(),
-                    config.hosting().overriddenBy(baseUrl, githubPages, customDomain));
+                    config.hosting().overriddenBy(baseUrl, githubPages, customDomain),
+                    architecture ? config.architecture().turnedOn() : config.architecture());
         }
     }
 }

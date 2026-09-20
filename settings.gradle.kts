@@ -10,6 +10,7 @@ include(
     "doctize-processor",
     "doctize-cli",
     "doctize-gradle-plugin",
+    "doctize-licensing",
     "doctize-docs",
     "doctize-example",
     "doctize-tests",

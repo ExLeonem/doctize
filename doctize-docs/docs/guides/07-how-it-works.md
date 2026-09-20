@@ -9,7 +9,8 @@ keywords: [architecture, pipeline, processor, model, design]
 ![The Doctize pipeline](../images/pipeline.svg)
 
 Doctize is a pipeline of small, separate steps. Knowing them helps when something does not come out as you
-expected, and shows where to plug in your own code.
+expected, and shows where to plug in your own code. How the code behind the steps is organised, in modules and packages,
+is the subject of [Architecture of Doctize](09-architecture-of-doctize.md).
 
 ## 1. Compile: the annotation processor
 

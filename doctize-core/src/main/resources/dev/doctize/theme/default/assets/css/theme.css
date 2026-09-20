@@ -507,3 +507,18 @@ code.type { background: none; border: 0; padding: 0; }
   .main { padding: 0; }
   .doc, .footer { max-width: none; }
 }
+
+/* Architecture map (a licensed feature): the diagram is an inline SVG that takes its colours from the theme. */
+.arch-figure { overflow-x: auto; margin: 1.25rem 0; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-subtle); }
+.arch-map { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--text-muted); }
+.arch-node rect { fill: var(--bg-raised); stroke: var(--border); stroke-width: 1.5; }
+.arch-node--component rect { stroke: var(--accent); }
+.arch-node--cycle rect { stroke: var(--caution); stroke-width: 2; }
+.arch-node text { font-family: var(--font-sans); }
+.arch-node .arch-name { fill: var(--text); font-size: 13px; font-weight: 600; }
+.arch-node .arch-sub { fill: var(--text-muted); font-size: 11px; }
+.arch-edge { stroke: var(--text-muted); opacity: 0.75; }
+.arch-edge:hover { opacity: 1; stroke: var(--accent); }
+.arch-edge--alert, .arch-edge--alert:hover { stroke: var(--caution); opacity: 1; }
+.arch-arrowhead { fill: var(--text-muted); }
+.arch-arrowhead--alert { fill: var(--caution); }

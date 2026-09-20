@@ -21,6 +21,32 @@ sections:
     title: API Reference
     description: The annotations and the public API of the generator, generated from the Javadoc.
 
+# The architecture map is a licensed feature. The build switches it on when it finds a license (see build.gradle.kts), so `enabled`
+# stays false here: without a license the site is built without the page, and without a warning.
+architecture:
+  title: Live architecture map
+  section: guides
+  order: 95
+  rootPackage: dev.doctize
+  # The root package holds the builder and DoctizeException, which almost every package refers to: shown, it would be a hub that
+  # hides the structure. The guide "Architecture of Doctize" explains it.
+  exclude: ["dev.doctize"]
+  external: true
+  # The known cycle between config, hosting, output, render, search and site is described in the guide. Reporting it would fail the
+  # build, which fails on warnings, so it is not looked for here.
+  cycles: false
+  # These hold today, and ArchitectureIntegrationTest checks them too.
+  forbid:
+    - from: dev.doctize.license.**
+      to: dev.doctize.**
+      reason: Licensing stands alone, so that it can be read and audited on its own.
+    - from: dev.doctize.model.**
+      to: dev.doctize.**
+      reason: The model is the hand-over format between the processor and the generator.
+    - from: dev.doctize.text.**
+      to: dev.doctize.**
+      reason: Text utilities are the bottom of the code.
+
 # Published with GitHub Pages. The address, https://exleonem.github.io/doctize/, is derived from project.repository.
 hosting:
   githubPages: true

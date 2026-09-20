@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 plugins {
     id("doctize.java-conventions")
     id("doctize.generate-docs")
@@ -30,6 +32,26 @@ dependencies {
 
 // Generating the documentation is part of `check`, and it must be free of warnings: a broken {@link} fails the build.
 tasks.named<JavaExec>("generateDocs") { args("--fail-on-warnings") }
+
+// The architecture map of Doctize is a licensed feature, so the site only gets it where there is a license: in doctize-docs/, in
+// $DOCTIZE_LICENSE or in ~/.doctize/license (the places Doctize itself looks; see RELEASING.md). Everywhere else, such as CI without
+// the secret, the site is built without that page, and without a warning.
+val licenseFile = layout.projectDirectory.file("doctize.license").asFile
+val homeLicenseFile = File(System.getProperty("user.home"), ".doctize/license")
+val environmentLicense = providers.environmentVariable("DOCTIZE_LICENSE").orElse("")
+val licensed = environmentLicense.get().isNotBlank() || licenseFile.isFile || homeLicenseFile.isFile
+
+tasks.named<JavaExec>("generateDocs") {
+    if (licensed) {
+        args("--architecture")
+    }
+    // A license that appears, changes or goes away changes the site, so it is an input. The one in the environment only as a hash.
+    inputs.property("architectureMap", licensed)
+    inputs.files(listOf(licenseFile, homeLicenseFile).filter { it.isFile }).withPropertyName("licenseFiles")
+    inputs.property("environmentLicense", environmentLicense.map { text: String ->
+        MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { byte -> "%02x".format(byte) }
+    })
+}
 tasks.named("check") { dependsOn("generateDocs") }
 
 // The documentation names the version of Doctize in its configuration and in its installation snippets.
