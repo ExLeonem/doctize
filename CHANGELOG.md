@@ -28,6 +28,8 @@ All notable changes to Doctize are documented in this file. The format follows
   light and a dark palette. Choose one with `theme.name` in `doctize.yml`, `--theme-name`, `Doctize.Builder#themeName` or `themeName`
   in the Gradle plugin; `doctize themes` lists them. The command line tool (and so the Gradle plugin) comes with the module; users of
   `doctize-core` add it to opt in. A theme directory is layered over a named theme.
+- The guide *Theming* links to a sample of every ready-made theme: the example site, which the documentation build generates in each
+  theme into `samples/<theme>/`. `verifyThemeSamples`, part of `check`, fails if a theme has no sample or the guide does not link to it.
 - `ThemeProvider` and `NamedTheme`: a jar can offer themes by name through `java.util.ServiceLoader`. The template variable
   `theme.stylesheets` holds the named theme's stylesheets, which `partials/head` loads after `theme.css`.
 

@@ -59,3 +59,64 @@ val verifyDocsVersion by tasks.registering {
     }
 }
 tasks.named("check") { dependsOn(verifyDocsVersion) }
+
+// The theming guide links to a sample of every ready-made theme: the example library's site, generated once per theme into
+// build/docs/samples/<theme>/. The samples run after generateDocs, which would otherwise delete them when it clears its output.
+val themeNames = listOf("default") + rootProject.file("doctize-themes/src/main/resources/dev/doctize/themes")
+    .listFiles { file -> file.isDirectory }.orEmpty().map { it.name }.sorted()
+val exampleDirectory = rootProject.layout.projectDirectory.dir("doctize-example")
+val exampleClasses = exampleDirectory.dir("build/classes/java/main")
+val samplesDirectory = layout.buildDirectory.dir("docs/samples")
+
+val generateThemeSamples by tasks.registering {
+    group = "documentation"
+    description = "Generates the example site in every ready-made theme, as samples for the theming guide."
+}
+themeNames.forEach { theme ->
+    val sample = tasks.register<JavaExec>("generateThemeSample" + theme.replaceFirstChar { it.uppercase() }) {
+        group = "documentation"
+        description = "Generates the example site in the theme '$theme' into build/docs/samples/$theme."
+        val output = samplesDirectory.map { it.dir(theme) }
+        dependsOn(":doctize-example:classes")
+        mustRunAfter("generateDocs")
+        inputs.dir(exampleClasses)
+        inputs.dir(exampleDirectory.dir("docs"))
+        inputs.file(exampleDirectory.file("doctize.yml"))
+        outputs.dir(output)
+
+        classpath = configurations["doctizeTool"]
+        mainClass = "dev.doctize.cli.DoctizeCli"
+        javaLauncher = javaToolchains.launcherFor(java.toolchain)
+        args(
+            "generate", "--fail-on-warnings",
+            "--config", exampleDirectory.file("doctize.yml").asFile.path,
+            "--model", exampleClasses.asFile.path,
+            "--theme-name", theme,
+            "--output", output.get().asFile.path,
+        )
+    }
+    generateThemeSamples { dependsOn(sample) }
+}
+tasks.named("generateDocs") { finalizedBy(generateThemeSamples) }
+
+// Every theme has a sample, and the guide links to each of them.
+val verifyThemeSamples by tasks.registering {
+    group = "verification"
+    description = "Checks that the theming guide links to a generated sample of every ready-made theme."
+    dependsOn(generateThemeSamples)
+    val guide = layout.projectDirectory.file("docs/guides/03-theming.md")
+    val samples = samplesDirectory
+    inputs.file(guide)
+    inputs.property("themes", themeNames)
+    doLast {
+        val text = guide.asFile.readText()
+        val problems = themeNames.flatMap { theme ->
+            listOfNotNull(
+                "03-theming.md has no link to ../samples/$theme/index.html".takeUnless { text.contains("href=\"../samples/$theme/index.html\"") },
+                "the sample of '$theme' was not generated".takeUnless { samples.get().file("$theme/index.html").asFile.isFile },
+            )
+        }
+        check(problems.isEmpty()) { "Theme samples:\n" + problems.joinToString("\n") }
+    }
+}
+tasks.named("check") { dependsOn(verifyThemeSamples) }
