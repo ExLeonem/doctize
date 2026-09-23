@@ -44,6 +44,36 @@ class DoctizePluginTest {
     }
 
     @Test
+    void theSiteIsNamedAfterTheBuild() {
+        Project project = project("dev.doctize");
+        project.setVersion("1.2.0");
+        project.setDescription("A small cache.");
+
+        assertThat(task(project).getProjectName().get()).isEqualTo(project.getName());
+        assertThat(task(project).getProjectVersion().get()).isEqualTo("1.2.0");
+        assertThat(task(project).getProjectTagline().get()).isEqualTo("A small cache.");
+    }
+
+    @Test
+    void aProjectWithoutVersionOrDescriptionLeavesThemOut() {
+        Project project = project("dev.doctize");
+
+        assertThat(task(project).getProjectVersion().isPresent()).isFalse();
+        assertThat(task(project).getProjectTagline().isPresent()).isFalse();
+    }
+
+    @Test
+    void aDocumentationProjectInAMultiModuleBuildIsNamedAfterTheRootProject() {
+        Project root = ProjectBuilder.builder().withName("acme-cache").withProjectDir(directory.toFile()).build();
+        root.setVersion("2.0.0");
+        Project site = ProjectBuilder.builder().withName("site").withParent(root).build();
+        site.getPluginManager().apply("dev.doctize");
+
+        assertThat(task(site).getProjectName().get()).isEqualTo("acme-cache");
+        assertThat(task(site).getProjectVersion().get()).isEqualTo("2.0.0");
+    }
+
+    @Test
     void aJavaProjectGetsTheAnnotationsAndTheProcessorInTheVersionOfThePlugin() {
         Project project = project("java", "dev.doctize");
         String version = PluginVersion.get();

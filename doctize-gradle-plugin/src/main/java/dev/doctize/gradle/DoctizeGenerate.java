@@ -81,6 +81,21 @@ public abstract class DoctizeGenerate extends DefaultTask {
     @Option(option = "custom-domain", description = "The custom domain of a GitHub Pages site, e.g. docs.acme.dev.")
     public abstract Property<String> getCustomDomain();
 
+    /** The name of the site, unless {@code project.name} of the configuration says otherwise. Default: the name of the Gradle project. */
+    @Optional
+    @Input
+    public abstract Property<String> getProjectName();
+
+    /** Shown next to the name, unless {@code project.version} of the configuration says otherwise. Default: the version of the Gradle project. */
+    @Optional
+    @Input
+    public abstract Property<String> getProjectVersion();
+
+    /** The tagline on the home page, unless {@code project.tagline} of the configuration says otherwise. Default: the description of the Gradle project. */
+    @Optional
+    @Input
+    public abstract Property<String> getProjectTagline();
+
     @Input
     @Option(option = "fail-on-warnings", description = "Fails the build if generating the site produced warnings.")
     public abstract Property<Boolean> getFailOnWarnings();
@@ -109,6 +124,9 @@ public abstract class DoctizeGenerate extends DefaultTask {
                 .flag("--github-pages", getGithubPages().get())
                 .option("--base-url", getBaseUrl().getOrNull())
                 .option("--cname", getCustomDomain().getOrNull())
+                .option("--project-name", getProjectName().getOrNull())
+                .option("--project-version", getProjectVersion().getOrNull())
+                .option("--project-tagline", getProjectTagline().getOrNull())
                 .flag("--fail-on-warnings", getFailOnWarnings().get())
                 .append(getArguments().get())
                 .build();

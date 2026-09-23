@@ -4,6 +4,7 @@ import com.sun.net.httpserver.SimpleFileServer;
 import dev.doctize.Doctize;
 import dev.doctize.DoctizeException;
 import dev.doctize.GenerationReport;
+import dev.doctize.config.ProjectInfo;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
@@ -24,10 +25,11 @@ final class GenerateCommand implements Callable<Integer> {
 
     @Option(
             names = {"-m", "--model"},
-            description = "Compiled classes directory, model file or jar produced by the annotation processor. Repeatable.")
+            description = "Compiled classes directory, model file or jar produced by the annotation processor. Repeatable. "
+                    + "Default: build/classes/java/main or target/classes, if they contain a model.")
     private List<Path> models = List.of();
 
-    @Option(names = {"-g", "--guides"}, description = "Directory with Markdown guides. Overrides the configuration.")
+    @Option(names = {"-g", "--guides"}, description = "Directory with Markdown guides. Overrides the configuration. Default: ./docs if it exists.")
     private Path guides;
 
     @Option(names = {"-t", "--theme"}, description = "Custom theme directory. Overrides the configuration.")
@@ -47,6 +49,15 @@ final class GenerateCommand implements Callable<Integer> {
 
     @Option(names = "--cname", description = "The custom domain of a GitHub Pages site, e.g. docs.acme.dev.")
     private String customDomain;
+
+    @Option(names = "--project-name", description = "The project name, if the configuration does not set project.name.")
+    private String projectName;
+
+    @Option(names = "--project-version", description = "The project version, if the configuration does not set project.version.")
+    private String projectVersion;
+
+    @Option(names = "--project-tagline", description = "The one-line description, if the configuration does not set project.tagline.")
+    private String projectTagline;
 
     @Option(names = "--fail-on-warnings", description = "Exit with code 1 if generation produced warnings, e.g. unresolved links. For CI.")
     private boolean failOnWarnings;
@@ -85,6 +96,7 @@ final class GenerateCommand implements Callable<Integer> {
             builder.configFile(configFile);
         }
         models.forEach(builder::model);
+        builder.projectDefaults(new ProjectInfo(projectName, projectTagline, projectVersion, null, null));
         if (guides != null) {
             builder.guides(guides);
         }

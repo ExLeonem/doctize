@@ -69,13 +69,17 @@ public interface Cache<K, V> { /* ... */ }
 
 At compile time the processor writes `META-INF/doctize/model.json` into your class output.
 
-**3. Scaffold the site and generate it.** With the Gradle plugin, `./gradlew generateDocs` writes the site to `build/docs`.
-With the command line tool:
+**3. Generate the site.** With the Gradle plugin, `./gradlew generateDocs` writes the site to `build/docs`.
+With the command line tool, in the project directory after compiling:
 
 ```console
-$ doctize init                       # creates doctize.yml and starter guides in docs/
-$ doctize generate --model build/classes/java/main --output build/docs --serve
+$ doctize generate --serve           # → build/docs, served on http://localhost:8080/
 ```
+
+No configuration is needed: Doctize finds the processor's output in `build/classes/java/main` (or Maven's `target/classes`),
+Markdown guides in `docs/`, and the repository link in the Git remote `origin`. The Gradle plugin also names the site
+after the project, with its version and description. `doctize init` creates a `doctize.yml` and starter guides for
+when you want to change any of that.
 
 The `doctize` command is built by `./gradlew :doctize-cli:installDist` (`doctize-cli/build/install/doctize/bin`)
 and needs Java 25 to run.
@@ -83,7 +87,7 @@ You can also call the API:
 
 ```java
 Doctize.builder()
-        .configFile(Path.of("doctize.yml"))
+        .configFile(Path.of("doctize.yml"))           // optional, like every setting
         .model(Path.of("build/classes/java/main"))   // repeat for more modules
         .output(Path.of("build/docs"))
         .build()
@@ -154,10 +158,10 @@ project:
   name: Acme Cache
   tagline: A small, fast, bounded in-memory cache for Java.
   version: 1.2.0
-  repository: https://github.com/acme/acme-cache
+  repository: https://github.com/acme/acme-cache   # default: the Git remote origin on GitHub, GitLab, Bitbucket, Codeberg
   footer: © 2026 Acme Corp.
 
-guides: docs                # Markdown directory, relative to this file
+guides: docs                # Markdown directory, relative to this file; docs is the default
 defaultSection: Guides      # for guides that are neither in a sub-directory nor name a section
 
 sections:

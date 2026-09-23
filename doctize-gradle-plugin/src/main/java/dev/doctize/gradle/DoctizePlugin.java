@@ -70,6 +70,10 @@ public class DoctizePlugin implements Plugin<Project> {
             task.getBaseUrl().convention(doctize.getBaseUrl());
             task.getCustomDomain().convention(doctize.getCustomDomain());
             task.getFailOnWarnings().convention(doctize.getFailOnWarnings());
+            // The root project names the product; a documentation project of its own is often just called "docs" or "site".
+            task.getProjectName().convention(project.getRootProject().getName());
+            task.getProjectVersion().convention(project.provider(() -> firstNonNull(version(project), version(project.getRootProject()))));
+            task.getProjectTagline().convention(project.provider(() -> firstNonNull(project.getDescription(), project.getRootProject().getDescription())));
             task.getArguments().convention(doctize.getArguments());
             task.getJavaLauncher().convention(doctize.getJavaLauncher());
         });
@@ -109,6 +113,16 @@ public class DoctizePlugin implements Plugin<Project> {
         Provider<List<Dependency>> dependencies = doctize.getAddDependencies().zip(doctize.getVersion(),
                 (enabled, version) -> enabled ? List.of(project.getDependencies().create(artifact(module, version))) : List.of());
         project.getConfigurations().getByName(configuration).getDependencies().addAllLater(dependencies);
+    }
+
+    /** The version of the project, which Gradle calls {@code unspecified} when none is set. */
+    private static String version(Project project) {
+        String version = String.valueOf(project.getVersion());
+        return version.equals(Project.DEFAULT_VERSION) ? null : version;
+    }
+
+    private static String firstNonNull(String first, String second) {
+        return first != null ? first : second;
     }
 
     /** Splits the value of the {@code doctizeArgs} project property at whitespace. */

@@ -96,6 +96,20 @@ class DoctizeCliTest {
     }
 
     @Test
+    void projectDataOfTheBuildToolIsUsedWhereTheConfigurationSetsNone() throws IOException {
+        Path config = dir.resolve("doctize.yml");
+        Files.writeString(config, "project:\n  version: 2.0.0\n");
+        Path output = dir.resolve("site");
+
+        Result result = run("generate", "--config", config.toString(), "--model", writeModel().toString(), "--output", output.toString(),
+                "--project-name", "acme-store", "--project-version", "1.0.0", "--project-tagline", "Stores values.");
+
+        assertThat(result.exitCode()).as(result.err()).isZero();
+        assertThat(Files.readString(output.resolve("index.html")))
+                .contains("<title>acme-store</title>").contains("Stores values.").contains("v2.0.0").doesNotContain("1.0.0");
+    }
+
+    @Test
     void generateCanPrepareTheOutputForGithubPages() throws IOException {
         Path output = dir.resolve("site");
 
@@ -111,7 +125,11 @@ class DoctizeCliTest {
 
     @Test
     void generateWarnsWhenGithubPagesIsRequestedButTheAddressIsUnknown() throws IOException {
-        Result result = run("generate", "--model", writeModel().toString(), "--output", dir.resolve("site").toString(), "--github-pages");
+        // A configuration outside of any Git repository, so that no address is derived from a remote.
+        Path config = Files.writeString(dir.resolve("doctize.yml"), "");
+
+        Result result = run("generate", "--config", config.toString(), "--model", writeModel().toString(),
+                "--output", dir.resolve("site").toString(), "--github-pages");
 
         assertThat(result.exitCode()).isZero();
         assertThat(result.err()).contains("doctize: warning:").contains("address of the site is unknown");

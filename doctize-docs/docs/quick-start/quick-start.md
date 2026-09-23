@@ -106,7 +106,8 @@ When you compile, the processor writes `META-INF/doctize/model.json` into the cl
 
 ## 3. Create the site structure
 
-`doctize init` creates a `doctize.yml` and a few starter guides:
+This step is optional: without guides and configuration, the site has the API reference and a home page named after
+your project. `doctize init` creates a `doctize.yml` and a few starter guides:
 
 ```console
 $ doctize init --name "My Library"
@@ -123,16 +124,18 @@ Every folder in `docs/` is a section of the site. Add your own by creating a fol
 ## 4. Generate and look at it
 
 ```console
-$ doctize generate --model build/classes/java/main --output build/docs --serve
+$ doctize generate --serve
 Generated 3 pages in 3 sections → build/docs
 Serving at http://localhost:8080/ (Ctrl+C to stop)
 ```
 
-Open <http://localhost:8080/>. Press <kbd>/</kbd> and search for "greet": the result leads directly to the
+Doctize finds the processor's output in `build/classes/java/main` (or `target/classes` for Maven) and writes the site to
+`build/docs`; `--model` and `--output` say otherwise. Open <http://localhost:8080/>. Press <kbd>/</kbd> and search for "greet": the result leads directly to the
 `greet()` method of the `Greeter` page.
 
 With the Gradle plugin, run `./gradlew generateDocs` instead. It compiles your code and writes the site to `build/docs`; open
-`build/docs/index.html`, which works straight from the file system. The plugin does not serve the site and does not scaffold
+`build/docs/index.html`, which works straight from the file system. It names the site after the Gradle project and shows its
+version and description, unless `doctize.yml` says otherwise. The plugin does not serve the site and does not scaffold
 it: create `doctize.yml` and `docs/` with `doctize init` as above, or by hand.
 
 ## Where to go next

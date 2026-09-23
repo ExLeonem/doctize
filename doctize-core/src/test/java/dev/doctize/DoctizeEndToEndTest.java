@@ -3,6 +3,7 @@ package dev.doctize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import dev.doctize.config.ProjectInfo;
 import dev.doctize.model.Declaration;
 import dev.doctize.model.ElementKind;
 import dev.doctize.model.Parameter;
@@ -244,8 +245,43 @@ class DoctizeEndToEndTest {
 
     @Test
     void reportsAnEmptyProjectClearly() {
-        assertThatThrownBy(() -> Doctize.builder().output(output).build().generate())
+        Path empty = dir.resolve("empty");
+
+        assertThatThrownBy(() -> Doctize.builder().baseDirectory(empty).output(output).build().generate())
                 .isInstanceOf(DoctizeException.class)
-                .hasMessageContaining("Nothing to document");
+                .hasMessageContaining("Nothing to document")
+                .hasMessageContaining(empty.resolve("build/classes/java/main").toString())
+                .hasMessageContaining("doctize-processor")
+                .hasMessageContaining(empty.resolve("docs").toString());
+    }
+
+    @Test
+    void aProjectWithTheUsualLayoutNeedsNoConfiguration() throws IOException {
+        Path classes = dir.resolve("build/classes/java/main/META-INF/doctize");
+        Files.createDirectories(classes);
+        Files.copy(model, classes.resolve("model.json"));
+        write(".git/config", "[remote \"origin\"]\n\turl = git@github.com:acme/store.git\n");
+
+        GenerationReport report = Doctize.builder().baseDirectory(dir).output(output).build().generate();
+
+        assertThat(report.pages()).isGreaterThanOrEqualTo(3);
+        assertThat(output.resolve("reference/com.acme.Store.html")).exists();
+        assertThat(output.resolve("setup/install.html")).exists();
+        assertThat(read("index.html")).contains("Welcome to the <strong>store</strong>").contains("https://github.com/acme/store");
+    }
+
+    @Test
+    void theConfigurationWinsOverTheProjectDataOfTheBuildTool() throws IOException {
+        Path config = dir.resolve("doctize.yml");
+        Files.writeString(config, "project:\n  name: Acme Store\n  repository: https://github.com/acme/elsewhere\n");
+        write(".git/config", "[remote \"origin\"]\n\turl = git@github.com:acme/store.git\n");
+
+        builder().configFile(config).projectDefaults(new ProjectInfo("store", "Stores values.", "3.1.0", null, null)).build().generate();
+
+        assertThat(read("index.html"))
+                .contains("<title>Acme Store</title>")
+                .contains("3.1.0")
+                .contains("Stores values.")
+                .contains("https://github.com/acme/elsewhere").doesNotContain("https://github.com/acme/store\"");
     }
 }

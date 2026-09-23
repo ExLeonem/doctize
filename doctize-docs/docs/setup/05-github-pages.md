@@ -26,7 +26,8 @@ created docs/setup/installation.md
 created .github/workflows/docs.yml
 ```
 
-1. Open `doctize.yml` and set `project.repository` to your repository, e.g. `https://github.com/acme/cache`.
+1. Check that the Git remote `origin` is your GitHub repository (`git remote -v`); the address of the site is derived from it.
+   If it is not, set `project.repository` in `doctize.yml`, e.g. to `https://github.com/acme/cache`.
 2. In the repository, open **Settings → Pages → Build and deployment** and choose **GitHub Actions** as the source.
 3. Push. The workflow generates the site and deploys it.
 
@@ -65,7 +66,7 @@ is the first of these that is set:
 
 1. `hosting.baseUrl` (or `--base-url`): the full address, e.g. `https://acme.github.io/cache/`.
 2. `hosting.customDomain` (or `--cname`): the address becomes `https://<domain>/`.
-3. With `githubPages`: derived from `project.repository`. `https://github.com/Acme/cache` becomes
+3. With `githubPages`: derived from `project.repository`, which by default is read from the Git remote `origin`. `https://github.com/Acme/cache` becomes
    `https://acme.github.io/cache/`, and a repository named `acme.github.io` is served at the root,
    `https://acme.github.io/`.
 
@@ -153,5 +154,5 @@ directory and, if they support it, at `404.html`.
 | The whole site gives 404 | The Pages source is not set to "GitHub Actions" (or to your branch), or the first deployment has not finished. |
 | The 404 page has no styling | The address has the wrong path: it must end with the repository name, e.g. `https://acme.github.io/cache/`. |
 | Files starting with an underscore are missing | `.nojekyll` is not in the output; turn `githubPages` on. |
-| A warning says the address is unknown | Set `project.repository` to a `github.com` URL, or set `hosting.baseUrl`. |
+| A warning says the address is unknown | The Git remote `origin` is not on github.com (or there is no Git repository): set `project.repository` to a `github.com` URL, or set `hosting.baseUrl`. |
 | The site cannot be reached from a private repository | Pages for private repositories needs a GitHub plan that includes it. |

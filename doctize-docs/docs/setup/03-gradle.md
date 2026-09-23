@@ -58,8 +58,14 @@ repositories {
 $ ./gradlew generateDocs      # → build/docs/index.html
 ```
 
-That is all a project with a [`doctize.yml`](04-configuration.md) and a `docs` directory needs. Both are optional, and
-found by their default names.
+That is all a project needs. A [`doctize.yml`](04-configuration.md) and a `docs` directory of guides are optional, and
+found by their default names. The site is named after the root project, and shows the version and the description of the
+project, unless `doctize.yml` sets `project.name`, `project.version` or `project.tagline`:
+
+```kotlin title="build.gradle.kts"
+version = "1.2.0"
+description = "A small, fast, bounded in-memory cache for Java."
+```
 
 ### What runs where
 

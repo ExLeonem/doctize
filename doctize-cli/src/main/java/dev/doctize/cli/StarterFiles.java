@@ -53,12 +53,13 @@ final class StarterFiles {
 
     private static String config(String projectName, boolean githubPages) {
         String repository = githubPages
-                ? "  # Set this to your repository: it is used to work out where GitHub Pages serves the site.\n  # repository: https://github.com/OWNER/REPOSITORY\n"
+                ? "  # Where GitHub Pages serves the site is worked out from the repository, which is read from the Git remote\n"
+                        + "  # `origin`. Set it if that is not your GitHub repository.\n  # repository: https://github.com/OWNER/REPOSITORY\n"
                 : "";
         String hosting = githubPages
                 ? """
 
-                # Prepares the output for GitHub Pages. The address of the site is derived from project.repository;
+                # Prepares the output for GitHub Pages. The address of the site is derived from the repository;
                 # set baseUrl if you use a custom domain or another host.
                 hosting:
                   githubPages: true
@@ -69,8 +70,8 @@ final class StarterFiles {
                 project:
                   name: %s
                   tagline: One sentence that says what this project is for.
-                %sguides: docs
-                %s
+                %s%s
+                # Markdown guides are read from docs/: a sub-directory is a section.
                 # The order of this list is the order of the navigation.
                 # Add a section here, then create docs/<section-id>/ and put Markdown files in it.
                 sections:

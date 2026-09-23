@@ -6,8 +6,8 @@ keywords: [yaml, settings, options]
 
 # Configuration
 
-The configuration file is optional, and so is every setting in it. Unknown keys are rejected, so a typo
-such as `projekt:` is reported instead of silently ignored.
+The configuration file is optional, and so is every setting in it: a project with the usual layout is documented without
+one, see the defaults below. Unknown keys are rejected, so a typo such as `projekt:` is reported instead of silently ignored.
 
 ```yaml title="doctize.yml"
 project:
@@ -55,10 +55,19 @@ Shown in the header, on the home page and in the footer. See {@link ProjectInfo}
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `name` | `Documentation` | The name in the top bar, the home page and the browser title. |
-| `tagline` | empty | One line below the name on the home page. |
-| `version` | empty | Shown as a badge next to the name. |
-| `repository` | empty | Adds a repository icon that links here to the top bar. |
+| `name` | the build's project name, else `Documentation` | The name in the top bar, the home page and the browser title. |
+| `tagline` | the build's project description, else empty | One line below the name on the home page. |
+| `version` | the build's project version, else empty | Shown as a badge next to the name. |
+| `repository` | the Git remote `origin`, see below | Adds a repository icon that links here to the top bar. |
+
+The build's project data is what the [Gradle plugin](03-gradle.md) passes (the name of the root project, and the version and
+description of the project), or the `--project-...` options of [`doctize generate`](02-command-line.md). Whatever this file
+sets wins.
+
+Without `repository`, Doctize reads the remote `origin` (or else the first remote) of the Git repository the project is in.
+An address on github.com, gitlab.com, bitbucket.org or codeberg.org is turned into its web address, e.g.
+`git@github.com:acme/cache.git` into `https://github.com/acme/cache`, without any credentials; a remote on another host is
+not published unless you name it here.
 | `footer` | empty | A line of text in the footer of every page. |
 
 ## theme
@@ -77,7 +86,7 @@ See {@link ThemeSettings} and [Theming](../guides/03-theming.md).
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `guides` | none | The directory with Markdown files, see [Structuring the site](../guides/02-structuring-the-site.md). |
+| `guides` | `docs`, if it exists | The directory with Markdown files, see [Structuring the site](../guides/02-structuring-the-site.md). |
 | `defaultSection` | `Guides` | The section for Markdown files in the root of that directory that do not name one. |
 
 ## sections

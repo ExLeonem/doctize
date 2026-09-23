@@ -3,6 +3,7 @@ package dev.doctize;
 import dev.doctize.annotations.Doc;
 import dev.doctize.config.ConfigLoader;
 import dev.doctize.config.DoctizeConfig;
+import dev.doctize.config.ProjectInfo;
 import dev.doctize.diagram.MermaidAssets;
 import dev.doctize.config.SectionSpec;
 import dev.doctize.hosting.BaseUrl;
@@ -41,6 +42,12 @@ import java.util.Optional;
  *         .generate();
  * }</pre>
  *
+ * <p>Every setting is optional. Left out, Doctize looks for what a project usually has, relative to the
+ * {@linkplain Builder#baseDirectory(Path) base directory}: the output of the annotation processor in
+ * {@code build/classes/java/main} (Gradle) or {@code target/classes} (Maven), guides in {@code docs}, and the address
+ * of the repository in the Git remote {@code origin}, if it is on GitHub, GitLab, Bitbucket or Codeberg. So
+ * {@code Doctize.builder().build().generate()} documents a project without further configuration.
+ *
  * <p>The structure of the site can be declared in the configuration file, or in code with
  * {@link Builder#section(String)}. Additional pages can be contributed with
  * {@link Builder#pageSource(PageSource)}.
@@ -61,8 +68,8 @@ public final class Doctize {
     private Doctize(Builder builder) {
         this.baseDirectory = builder.baseDirectory;
         this.config = builder.effectiveConfig();
-        this.modelLocations = List.copyOf(builder.modelLocations);
-        this.guidesDirectory = builder.guidesDirectory != null ? builder.guidesDirectory : resolveConfigured(config.guides());
+        this.modelLocations = builder.modelLocations.isEmpty() ? Conventions.models(baseDirectory) : List.copyOf(builder.modelLocations);
+        this.guidesDirectory = builder.guidesDirectory != null ? builder.guidesDirectory : guidesOf(config, baseDirectory);
         this.themeDirectory = builder.themeDirectory != null ? builder.themeDirectory : resolveConfigured(config.theme().path());
         this.outputDirectory = builder.outputDirectory;
         this.extraSources = List.copyOf(builder.extraSources);
@@ -77,8 +84,7 @@ public final class Doctize {
         GuideDirectory guides = guidesDirectory == null ? null : new GuideDirectory(guidesDirectory);
         Site site = new SiteAssembler(config).assemble(collectPages(guides), guides == null ? "" : guides.intro());
         if (site.pages().isEmpty()) {
-            throw new DoctizeException("Nothing to document: no annotated types were found in the model"
-                    + " and no guides were provided.");
+            throw new DoctizeException(nothingToDocument());
         }
         Theme theme = themeDirectory == null ? Theme.builtIn() : Theme.customized(themeDirectory);
         TemplateEngine templates = new TemplateEngine(theme);
@@ -157,6 +163,22 @@ public final class Doctize {
         return urls;
     }
 
+    private String nothingToDocument() {
+        String models = modelLocations.isEmpty()
+                ? "No output of the annotation processor was given, and none was found in "
+                        + Conventions.CLASS_DIRECTORIES.stream().map(baseDirectory::resolve).map(Path::toString).toList()
+                        + ": is doctize-processor on the annotation processor path, is a type annotated with @Doc, and is the code compiled?"
+                : "No type annotated with @Doc or @DocPage was found in " + modelLocations + ".";
+        String guides = guidesDirectory == null
+                ? " There are no guides either: add Markdown files to " + baseDirectory.resolve(Conventions.GUIDES_DIRECTORY) + "."
+                : " The guides in " + guidesDirectory + " have no page either.";
+        return "Nothing to document. " + models + guides;
+    }
+
+    private static Path guidesOf(DoctizeConfig config, Path baseDirectory) {
+        return config.guides().isBlank() ? Conventions.guides(baseDirectory).orElse(null) : baseDirectory.resolve(config.guides());
+    }
+
     private Path resolveConfigured(String path) {
         return path.isBlank() ? null : baseDirectory.resolve(path);
     }
@@ -175,6 +197,7 @@ public final class Doctize {
         private String baseUrl;
         private Boolean githubPages;
         private String customDomain;
+        private ProjectInfo projectDefaults = DoctizeConfig.defaults().project();
 
         private Builder() {}
 
@@ -196,12 +219,16 @@ public final class Doctize {
             return this;
         }
 
-        /** Adds the compiled output of a module (or a model file or jar) to document. May be called repeatedly. */
+        /**
+         * Adds the compiled output of a module (or a model file or jar) to document. May be called repeatedly. Without one,
+         * {@code build/classes/java/main} and {@code target/classes} below the base directory are used if they contain a model.
+         */
         public Builder model(Path location) {
             this.modelLocations.add(location);
             return this;
         }
 
+        /** The directory with Markdown guides. Default: {@code guides} of the configuration, or else {@code docs}, if it exists. */
         public Builder guides(Path directory) {
             this.guidesDirectory = directory;
             return this;
@@ -258,6 +285,15 @@ public final class Doctize {
             return this;
         }
 
+        /**
+         * Project data for what the configuration file does not set, typically what the build tool knows: the name, version
+         * and description of the project. Unlike the other settings here, the configuration file wins.
+         */
+        public Builder projectDefaults(ProjectInfo project) {
+            this.projectDefaults = project;
+            return this;
+        }
+
         /** Contributes additional pages, e.g. a changelog generated from a file. */
         public Builder pageSource(PageSource source) {
             this.extraSources.add(source);
@@ -270,13 +306,23 @@ public final class Doctize {
 
         private DoctizeConfig effectiveConfig() {
             return new DoctizeConfig(
-                    config.project(),
+                    project(),
                     config.theme(),
                     sections.isEmpty() ? config.sections() : sections,
                     config.guides(),
                     config.defaultSection(),
                     config.api(),
                     config.hosting().overriddenBy(baseUrl, githubPages, customDomain));
+        }
+
+        private ProjectInfo project() {
+            ProjectInfo project = config.project().orElse(projectDefaults);
+            if (!project.repository().isBlank()) {
+                return project;
+            }
+            return Conventions.repository(baseDirectory)
+                    .map(repository -> project.orElse(new ProjectInfo(null, null, null, repository, null)))
+                    .orElse(project);
         }
     }
 }

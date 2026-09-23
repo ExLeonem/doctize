@@ -16,10 +16,19 @@ All notable changes to Doctize are documented in this file. The format follows
   configure it; `-PdoctizeArgs` still works. Several modules are documented as one site with `modules(...)`.
   The plugin runs on Gradle 9 with a JDK 17 or newer.
 - The version check of the documentation also covers plugin declarations (`id("dev.doctize") version "..."`).
+- Documenting a project needs no configuration. Settings that are left out are found by convention: the processor's output in
+  `build/classes/java/main` or `target/classes`, guides in `docs`, and `project.repository` in the Git remote `origin` (only on
+  github.com, gitlab.com, bitbucket.org and codeberg.org, without credentials), which also gives GitHub Pages its address.
+  So `doctize generate` works without options, and `Doctize.builder().build().generate()` without settings.
+- Project data from the build tool: `doctize generate --project-name/--project-version/--project-tagline` and
+  `Doctize.Builder#projectDefaults` fill in what `doctize.yml` does not set. The Gradle plugin passes the name of the root project
+  and the version and description of the project.
+- When there is nothing to document, the message says where Doctize looked and what to check.
 
 ### Changed
 
 - The guide *Running from Gradle* describes the plugin; the `JavaExec` task it used to show remains as an alternative.
+- The `doctize.yml` of `doctize init` no longer sets `guides: docs`, which is the default.
 
 ## [0.1.0]
 
