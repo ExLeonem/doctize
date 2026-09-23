@@ -18,7 +18,7 @@ public final class Views {
 
     public record ProjectView(String name, String tagline, String version, String repository, String footer) {}
 
-    public record ThemeView(String accent, List<String> extraCss, List<String> extraJs, Map<String, String> options) {}
+    public record ThemeView(String name, List<String> stylesheets, String accent, List<String> extraCss, List<String> extraJs, Map<String, String> options) {}
 
     public record NavItemView(String title, String url, boolean current, boolean deprecated) {}
 

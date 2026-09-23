@@ -68,7 +68,7 @@ class PublishedArtifactsSystemTest {
             java.util.Map.of("md5", "MD5", "sha1", "SHA-1", "sha256", "SHA-256", "sha512", "SHA-512");
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
+    @ValueSource(strings = {"annotations", "processor", "core", "themes", "cli", "gradle-plugin"})
     void everyModuleShipsAllTheFilesCentralRequiresWithCorrectChecksums(String module) throws Exception {
         for (String suffix : List.of(".jar", "-sources.jar", "-javadoc.jar", ".pom", ".module")) {
             Path artifact = file(module, suffix);
@@ -84,7 +84,7 @@ class PublishedArtifactsSystemTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
+    @ValueSource(strings = {"annotations", "processor", "core", "themes", "cli", "gradle-plugin"})
     void thePomCarriesTheMetadataCentralRequires(String module) throws Exception {
         Document pom = pom(module);
 
@@ -110,7 +110,17 @@ class PublishedArtifactsSystemTest {
                 .noneMatch(dependency -> dependency.startsWith("dev.doctize"))
                 .as("the annotations are compileOnly and must not leak into the POM");
         assertThat(dependencies("processor")).contains("dev.doctize:doctize-annotations:runtime", "dev.doctize:doctize-core:runtime");
-        assertThat(dependencies("cli")).contains("dev.doctize:doctize-core:runtime", "info.picocli:picocli:runtime");
+        assertThat(dependencies("cli")).contains("dev.doctize:doctize-core:runtime", "dev.doctize:doctize-themes:runtime", "info.picocli:picocli:runtime");
+        assertThat(dependencies("core")).as("the themes are optional: core must not pull them in")
+                .doesNotContain("dev.doctize:doctize-themes:runtime");
+    }
+
+    @Test
+    void theThemesJarRegistersItsThemesAndBringsTheirStylesheets() throws IOException {
+        Path jar = file("themes", ".jar");
+
+        assertThat(entries(jar)).contains("META-INF/services/dev.doctize.theme.ThemeProvider",
+                "dev/doctize/themes/ocean/assets/css/themes/ocean.css", "dev/doctize/themes/terminal/assets/css/themes/terminal.css");
     }
 
     private static List<String> dependencies(String module) throws Exception {
@@ -129,7 +139,7 @@ class PublishedArtifactsSystemTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
+    @ValueSource(strings = {"annotations", "processor", "core", "themes", "cli", "gradle-plugin"})
     void jarsAreIdentifiedReproducibleAndCarryTheLicense(String module) throws Exception {
         Path jar = file(module, ".jar");
 
@@ -240,7 +250,7 @@ class PublishedArtifactsSystemTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
+    @ValueSource(strings = {"annotations", "processor", "core", "themes", "cli", "gradle-plugin"})
     void sourcesAndJavadocAreReallyThere(String module) throws IOException {
         assertThat(entries(file(module, "-sources.jar"))).anyMatch(entry -> entry.endsWith(".java"));
         Set<String> javadoc = entries(file(module, "-javadoc.jar"));
@@ -248,7 +258,7 @@ class PublishedArtifactsSystemTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"annotations", "processor", "core", "cli", "gradle-plugin"})
+    @ValueSource(strings = {"annotations", "processor", "core", "themes", "cli", "gradle-plugin"})
     void everyFileIsSignedWhenASigningKeyIsConfigured(String module) {
         assumeTrue(Boolean.getBoolean("doctize.signed"), "no signing key configured; this is checked in the release build");
 

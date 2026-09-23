@@ -5,7 +5,7 @@
  *   ./gradlew centralBundle           builds build/central/doctize-<version>-central-bundle.zip
  *   ./gradlew publishToCentralPortal  uploads it (needs CENTRAL_PORTAL_USERNAME and CENTRAL_PORTAL_PASSWORD)
  */
-val publishedModules = listOf("doctize-annotations", "doctize-processor", "doctize-core", "doctize-cli", "doctize-gradle-plugin")
+val publishedModules = listOf("doctize-annotations", "doctize-processor", "doctize-core", "doctize-themes", "doctize-cli", "doctize-gradle-plugin")
 
 val cleanStaging by tasks.registering(Delete::class) {
     delete(layout.buildDirectory.dir("staging-deploy"))

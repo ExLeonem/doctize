@@ -244,6 +244,34 @@ class DoctizeEndToEndTest {
     }
 
     @Test
+    void aNamedThemeIsChosenInTheConfigurationAndLoadedBeforeTheSitesOwnStylesheets() throws IOException {
+        Path config = dir.resolve("doctize.yml");
+        Files.writeString(dir.resolve("brand.css"), "");
+        Files.writeString(config, "theme:\n  name: sunset\n  accent: \"#123456\"\n  extraCss: [brand.css]\n");
+
+        builder().configFile(config).build().generate();
+
+        String page = read("setup/install.html");
+        assertThat(output.resolve("assets/css/themes/sunset.css")).exists();
+        assertThat(page).contains("Sunset footer");
+        assertThat(page.indexOf("assets/css/theme.css")).isLessThan(page.indexOf("assets/css/themes/sunset.css"));
+        assertThat(page.indexOf("assets/css/themes/sunset.css"))
+                .as("the site's accent and stylesheets win over the theme").isLessThan(page.indexOf("#123456"));
+        assertThat(page.indexOf("#123456")).isLessThan(page.indexOf("assets/custom/brand.css"));
+    }
+
+    @Test
+    void theThemeOfTheBuilderWinsOverTheConfiguration() throws IOException {
+        Path config = dir.resolve("doctize.yml");
+        Files.writeString(config, "theme:\n  name: sunset\n");
+
+        builder().configFile(config).themeName("default").build().generate();
+
+        assertThat(output.resolve("assets/css/themes/sunset.css")).doesNotExist();
+        assertThat(read("index.html")).doesNotContain("Sunset footer");
+    }
+
+    @Test
     void reportsAnEmptyProjectClearly() {
         Path empty = dir.resolve("empty");
 

@@ -62,6 +62,7 @@ public final class Doctize {
     private final List<Path> modelLocations;
     private final Path guidesDirectory;
     private final Path themeDirectory;
+    private final String themeName;
     private final Path outputDirectory;
     private final List<PageSource> extraSources;
 
@@ -71,6 +72,7 @@ public final class Doctize {
         this.modelLocations = builder.modelLocations.isEmpty() ? Conventions.models(baseDirectory) : List.copyOf(builder.modelLocations);
         this.guidesDirectory = builder.guidesDirectory != null ? builder.guidesDirectory : guidesOf(config, baseDirectory);
         this.themeDirectory = builder.themeDirectory != null ? builder.themeDirectory : resolveConfigured(config.theme().path());
+        this.themeName = builder.themeName != null ? builder.themeName : config.theme().name();
         this.outputDirectory = builder.outputDirectory;
         this.extraSources = List.copyOf(builder.extraSources);
     }
@@ -86,7 +88,7 @@ public final class Doctize {
         if (site.pages().isEmpty()) {
             throw new DoctizeException(nothingToDocument());
         }
-        Theme theme = themeDirectory == null ? Theme.builtIn() : Theme.customized(themeDirectory);
+        Theme theme = Theme.of(themeName, themeDirectory);
         TemplateEngine templates = new TemplateEngine(theme);
         OutputDirectory output = new OutputDirectory(outputDirectory);
         output.prepare();
@@ -108,7 +110,7 @@ public final class Doctize {
         SiteWriter writer = new SiteWriter(
                 site,
                 renderer,
-                new LayoutFactory(site, config.theme(), extraCss, extraJs, baseUrl),
+                new LayoutFactory(site, config.theme(), theme.stylesheets(), extraCss, extraJs, baseUrl),
                 templates,
                 output,
                 baseUrl);
@@ -193,6 +195,7 @@ public final class Doctize {
         private final List<PageSource> extraSources = new ArrayList<>();
         private Path guidesDirectory;
         private Path themeDirectory;
+        private String themeName;
         private Path outputDirectory = Path.of("build", "docs");
         private String baseUrl;
         private Boolean githubPages;
@@ -237,6 +240,16 @@ public final class Doctize {
         /** A custom theme directory that is layered over the built-in theme. */
         public Builder theme(Path directory) {
             this.themeDirectory = directory;
+            return this;
+        }
+
+        /**
+         * A named theme, e.g. {@code ocean}, layered under a custom theme directory and over the built-in theme. Replaces
+         * {@code theme.name} of the configuration file. The themes besides {@code default} come from
+         * {@code dev.doctize:doctize-themes} on the class path; {@link Theme#available()} lists them.
+         */
+        public Builder themeName(String name) {
+            this.themeName = name;
             return this;
         }
 

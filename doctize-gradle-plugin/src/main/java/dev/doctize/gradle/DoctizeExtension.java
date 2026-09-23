@@ -32,6 +32,9 @@ public abstract class DoctizeExtension {
     /** A custom theme directory. Default: none, the built-in theme. */
     public abstract DirectoryProperty getTheme();
 
+    /** A named theme such as {@code ocean} ({@code doctize themes} lists them). Default: {@code theme.name} of the configuration, else the built-in theme. */
+    public abstract Property<String> getThemeName();
+
     /** Where the site is written. Default: {@code build/docs}. */
     public abstract DirectoryProperty getOutput();
 

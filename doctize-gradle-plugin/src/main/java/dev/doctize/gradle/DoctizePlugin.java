@@ -64,6 +64,7 @@ public class DoctizePlugin implements Plugin<Project> {
             task.getConfig().convention(doctize.getConfig());
             task.getGuides().convention(doctize.getGuides());
             task.getTheme().convention(doctize.getTheme());
+            task.getThemeName().convention(doctize.getThemeName());
             task.getAdditionalInputs().from(doctize.getAdditionalInputs());
             task.getOutput().convention(doctize.getOutput());
             task.getGithubPages().convention(doctize.getGithubPages());

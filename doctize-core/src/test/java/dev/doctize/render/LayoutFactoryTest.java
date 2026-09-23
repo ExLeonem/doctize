@@ -37,7 +37,7 @@ class LayoutFactoryTest {
     }
 
     LayoutFactory factory(Optional<BaseUrl> base) {
-        return new LayoutFactory(site, new ThemeSettings("", "#abc", List.of("c.css"), List.of("j.js"), Map.of("k", "v")), List.of("assets/custom/c.css"), List.of("assets/custom/j.js"), base);
+        return new LayoutFactory(site, new ThemeSettings("", "", "#abc", List.of("c.css"), List.of("j.js"), Map.of("k", "v")), List.of(), List.of("assets/custom/c.css"), List.of("assets/custom/j.js"), base);
     }
 
     private RenderedPage rendered(int index) {
@@ -116,7 +116,7 @@ class LayoutFactoryTest {
     void aSingularPageCountReadsNaturally() {
         Site single = siteWithSections(List.of(), guide("only", "Only", "s", "x", ""));
 
-        Views.HomeView view = new LayoutFactory(single, ThemeSettings.defaults(), List.of(), List.of(), Optional.empty()).homeView("");
+        Views.HomeView view = new LayoutFactory(single, ThemeSettings.defaults(), List.of(), List.of(), List.of(), Optional.empty()).homeView("");
 
         assertThat(view.sections().getFirst().pageLabel()).isEqualTo("1 page");
     }

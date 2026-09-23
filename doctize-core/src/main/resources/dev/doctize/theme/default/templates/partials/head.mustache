@@ -15,6 +15,7 @@
   } catch (e) {}
 </script>
 <link rel="stylesheet" href="{{basePath}}assets/css/theme.css">
-{{#theme}}{{#accent}}<style>:root { --accent: {{accent}}; }</style>
+{{#theme}}{{#stylesheets}}<link rel="stylesheet" href="{{basePath}}{{.}}">
+{{/stylesheets}}{{#accent}}<style>:root { --accent: {{accent}}; }</style>
 {{/accent}}{{#extraCss}}<link rel="stylesheet" href="{{basePath}}{{.}}">
 {{/extraCss}}{{/theme}}

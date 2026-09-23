@@ -18,6 +18,7 @@ project:
   footer: © 2026 Acme Corp.
 
 theme:
+  name: ocean
   path: my-theme
   accent: "#0d9488"
   extraCss: [brand.css]
@@ -76,7 +77,8 @@ See {@link ThemeSettings} and [Theming](../guides/03-theming.md).
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `path` | none | A directory with a custom theme, layered over the built-in theme. |
+| `name` | `default` | A [ready-made theme](../guides/03-theming.md#ready-made-themes): `ocean`, `forest`, `paper`, `contrast`, `terminal`. |
+| `path` | none | A directory with a custom theme, layered over the built-in theme and the named one. |
 | `accent` | theme default | A CSS colour for links and highlights. |
 | `extraCss` | none | Stylesheets added after the theme's own. Copied to `assets/custom/`. |
 | `extraJs` | none | Scripts added at the end of every page. Copied to `assets/custom/`. |

@@ -7,7 +7,44 @@ keywords: [theme, css, template, dark mode, customize, branding]
 # Theming
 
 The default theme is a light and dark site with a sidebar, an "On this page" navigation and a search dialog.
-There are three levels of change, from small to large. Use the smallest one that does the job.
+You can pick one of the [ready-made themes](#ready-made-themes), and change the look at three levels, from small to large.
+Use the smallest one that does the job.
+
+## Ready-made themes
+
+Five more themes come in the optional module `dev.doctize:doctize-themes`. Choose one by name:
+
+```yaml title="doctize.yml"
+theme:
+  name: ocean
+```
+
+| Name | Look |
+|------|------|
+| `default` | The built-in theme: indigo accents, system fonts. Used when no theme is named. |
+| `ocean` | Teal and deep blue, cool neutrals and rounder corners. |
+| `forest` | Moss green on warm off-white; earthy in the dark. |
+| `paper` | A serif reading theme with a narrow text column, like a printed book. |
+| `contrast` | High contrast for accessibility: black on white, underlined links, strong focus rings. |
+| `terminal` | Monospace everywhere, square corners and a green prompt. |
+
+Every theme has a light and a dark palette, and works with the dark mode toggle, search and everything else the built-in
+theme does: a ready-made theme is a stylesheet (and a logo) layered over the built-in theme. `doctize themes` lists the
+themes that are available.
+
+**Opting in and out.** The [command line tool](../setup/02-command-line.md), and so the [Gradle plugin](../setup/03-gradle.md),
+come with the themes. If you call the library, {@link Doctize}, add the module next to `doctize-core`; without it only
+`default` is available, and naming another theme is an error that says so:
+
+```kotlin
+dependencies {
+    implementation("dev.doctize:doctize-core:0.1.0")
+    runtimeOnly("dev.doctize:doctize-themes:0.1.0")
+}
+```
+
+Everything below works on top of a ready-made theme: `accent` and `extraCss` are applied after its stylesheet, and a theme
+directory is layered over it.
 
 ## 1. Settings
 
@@ -95,6 +132,23 @@ my-theme/
 ```
 
 Files in `assets/` are copied to `assets/` in the site. A file with the same path as a built-in asset replaces it.
+
+### A theme for others to use
+
+To share a theme, put it in a jar. The jar contains the theme directory as resources and a {@link ThemeProvider} that names
+it, registered in `META-INF/services/dev.doctize.theme.ThemeProvider`:
+
+```java
+public final class AcmeThemes implements ThemeProvider {
+    @Override
+    public List<NamedTheme> themes() {
+        return List.of(new NamedTheme("acme", "The Acme corporate look.", "com/acme/doctize/theme", List.of("css/acme.css")));
+    }
+}
+```
+
+With the jar on the class path, `theme.name: acme` layers `com/acme/doctize/theme/` over the built-in theme and loads
+`assets/css/acme.css` after the built-in stylesheet. See {@link NamedTheme}. `doctize-themes` is built like that.
 
 ### Example: your own footer
 

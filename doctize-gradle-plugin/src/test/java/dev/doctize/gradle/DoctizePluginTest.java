@@ -173,9 +173,11 @@ class DoctizePluginTest {
         doctize.getBaseUrl().set("https://acme.github.io/cache/");
         doctize.getFailOnWarnings().set(true);
         doctize.getOutput().set(project.getLayout().getProjectDirectory().dir("site"));
+        doctize.getThemeName().set("ocean");
 
         DoctizeGenerate task = task(project);
 
+        assertThat(task.getThemeName().get()).isEqualTo("ocean");
         assertThat(task.getGithubPages().get()).isTrue();
         assertThat(task.getBaseUrl().get()).isEqualTo("https://acme.github.io/cache/");
         assertThat(task.getFailOnWarnings().get()).isTrue();

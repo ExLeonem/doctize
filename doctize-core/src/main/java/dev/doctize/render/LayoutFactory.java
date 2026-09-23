@@ -36,16 +36,17 @@ public final class LayoutFactory {
     private final Optional<BaseUrl> baseUrl;
 
     /**
+     * @param themeCss URLs of the stylesheets of a named theme, relative to the site root
      * @param extraCss URLs of extra stylesheets relative to the site root; likewise {@code extraJs}
      * @param baseUrl the address the site is published at, if known; enables canonical links and the 404 page
      */
     public LayoutFactory(
-            Site site, ThemeSettings settings, List<String> extraCss, List<String> extraJs, Optional<BaseUrl> baseUrl) {
+            Site site, ThemeSettings settings, List<String> themeCss, List<String> extraCss, List<String> extraJs, Optional<BaseUrl> baseUrl) {
         ProjectInfo info = site.project();
         this.baseUrl = baseUrl;
         this.site = site;
         this.project = new ProjectView(info.name(), info.tagline(), info.version(), info.repository(), info.footer());
-        this.theme = new ThemeView(settings.accent(), extraCss, extraJs, settings.options());
+        this.theme = new ThemeView(settings.name(), themeCss, settings.accent(), extraCss, extraJs, settings.options());
     }
 
     public LayoutView forPage(RenderedPage rendered) {

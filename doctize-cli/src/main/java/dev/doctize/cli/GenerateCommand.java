@@ -35,6 +35,9 @@ final class GenerateCommand implements Callable<Integer> {
     @Option(names = {"-t", "--theme"}, description = "Custom theme directory. Overrides the configuration.")
     private Path theme;
 
+    @Option(names = "--theme-name", description = "A named theme, e.g. ocean; `doctize themes` lists them. Overrides theme.name of the configuration.")
+    private String themeName;
+
     @Option(names = {"-o", "--output"}, description = "Output directory. Default: ${DEFAULT-VALUE}.", defaultValue = "build/docs")
     private Path output;
 
@@ -102,6 +105,9 @@ final class GenerateCommand implements Callable<Integer> {
         }
         if (theme != null) {
             builder.theme(theme);
+        }
+        if (themeName != null) {
+            builder.themeName(themeName);
         }
         if (githubPages) {
             builder.githubPages();

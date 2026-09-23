@@ -31,7 +31,7 @@ Extra CLI args for `generateDocs`: `-PdoctizeArgs="--github-pages --base-url htt
 - Compiler runs with `-Xlint:all -Werror`: **any warning fails the build**.
 - The project version lives only in `gradle.properties`. `doctize-docs:verifyDocsVersion` fails if `doctize-docs/doctize.yml` or any `dev.doctize:doctize-*:<version>` snippet in `doctize-docs/docs` names a different version. Release steps are in `RELEASING.md`; add changes under "Unreleased" in `CHANGELOG.md`.
 - `doctize-annotations` must stay dependency-free. Public types in the documented modules carry `@Doc` (with `group` and `order`) because the project documents itself.
-- Published modules: `doctize-annotations`, `doctize-processor`, `doctize-core`, `doctize-cli`, `doctize-gradle-plugin`. The root `build.gradle.kts` stages them into `build/staging-deploy` and builds the Maven Central bundle (`stageArtifacts`, `centralBundle`).
+- Published modules: `doctize-annotations`, `doctize-processor`, `doctize-core`, `doctize-themes`, `doctize-cli`, `doctize-gradle-plugin`. The root `build.gradle.kts` stages them into `build/staging-deploy` and builds the Maven Central bundle (`stageArtifacts`, `centralBundle`).
 
 ## Architecture
 
@@ -45,11 +45,12 @@ Pipeline (details in `doctize-docs/docs/guides/07-how-it-works.md`):
   - `site` – `PageSource`s (`ApiPageSource`, `GuideDirectory`) produce `Page`s that say *what* they want (section/order/title) but not where they land; `SiteAssembler` is the **only** place that decides structure/URLs (sections, ordering, dropping empties)
   - `javadoc` + `markdown` – inline tags → Markdown → HTML, heading ids, build-time syntax highlighting, link rewriting
   - `render` – `PageRenderer`, `Views` (view objects for templates), `TypeIndex` (cross-page/module `{@link}` resolution)
-  - `theme` – Mustache templates layered over the built-in theme (`src/main/resources/dev/doctize/theme/default`); templates are logic-less, so all display data is prepared in Java
+  - `theme` – Mustache templates layered over the built-in theme (`src/main/resources/dev/doctize/theme/default`); templates are logic-less, so all display data is prepared in Java. Layers, top to bottom: custom theme directory, named theme (`theme.name`, found via the `ThemeProvider` SPI and `ServiceLoader`), built-in theme
   - `search` – builds `search-index.js`; the search engine itself is JS in the theme assets (`search-engine.js`, `search-ui.js`) and is tested from Node in the integration tests
   - `output`/`hosting` – `SiteWriter`; output dir is only cleaned if it contains the `.doctize-site` marker; GitHub Pages files (`.nojekyll`, `404.html`, sitemap)
   - `diagram` – `dev.doctize.diagram.MermaidAssets` publishes the bundled `mermaid.min.js` only if a guide has a `mermaid` fence; the theme's `diagrams.js` loads it lazily
-- `doctize-cli` – picocli wrapper (`generate`, `init`) around `Doctize`.
+- `doctize-themes` – optional ready-made themes (`BundledThemes`, one directory per theme under `dev/doctize/themes/<name>`): each is a stylesheet overriding the built-in theme's CSS variables in all three palette blocks (light, `[data-theme="dark"]`, `prefers-color-scheme: dark`) plus a recoloured logo. Core must never depend on it (`PublishedArtifactsSystemTest` checks); the CLI has it as `runtimeOnly`. `BundledThemesTest` checks every built-in dark variable is replaced, but CSS is only really checked in a browser: after changing a theme, generate a site with it and look at it in light and dark mode.
+- `doctize-cli` – picocli wrapper (`generate`, `init`, `themes`) around `Doctize`.
 - `doctize-gradle-plugin` – the `dev.doctize` Gradle plugin (`DoctizePlugin`, `doctize { }` extension, `DoctizeGenerate` task). It does **not** depend on `doctize-core`: the task runs the published `doctize-cli` in a separate process on a Java 25 toolchain (`doctizeTool` configuration), and `CliArguments` is the one place that knows the CLI's command line. The module is compiled with `--release 17` (Gradle's JVM may be older than 25) and must stay so. `java-gradle-plugin` adds its own publications, incl. a marker artifact `dev.doctize.gradle.plugin`; `doctize.publishing-conventions` handles that and signs every publication. Unit tests use `ProjectBuilder`; `GradlePluginSystemTest` runs real builds through TestKit against the staged artifacts.
 - Output URLs are relative to the site root (`{{basePath}}` in templates) so the site works from `file://` and under any sub-path — keep this invariant when touching links.
 

@@ -15,7 +15,7 @@ $ doctize generate --help
 Builds the site.
 
 ```console
-doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [-o <dir>]
+doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [--theme-name <name>] [-o <dir>]
                  [--github-pages] [--base-url <url>] [--cname <domain>]
                  [--project-name <name>] [--project-version <version>] [--project-tagline <text>]
                  [--fail-on-warnings] [--serve [--port <n>]]
@@ -27,6 +27,7 @@ doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [-o <dir>]
 | `-m`, `--model` | Where the annotation processor left its output: a compiled classes directory such as `build/classes/java/main`, a `model.json` file, or a jar. Repeat the option for several modules. By default `build/classes/java/main` and `target/classes`, if they contain a model. |
 | `-g`, `--guides` | The directory with Markdown guides. Overrides `guides` in the configuration. By default `docs`, if it exists. |
 | `-t`, `--theme` | A custom theme directory. Overrides `theme.path`. |
+| `--theme-name` | A [ready-made theme](../guides/03-theming.md#ready-made-themes) such as `ocean`. Overrides `theme.name`. |
 | `-o`, `--output` | The output directory. Default `build/docs`. |
 | `--github-pages` | Prepares the output for GitHub Pages: writes `.nojekyll`, and `CNAME` if a domain is set. See [Publishing to GitHub Pages](05-github-pages.md). |
 | `--base-url` | The address the site will be published at, e.g. `https://acme.github.io/cache/`. Enables `404.html`, `sitemap.xml`, `robots.txt` and canonical links. |
@@ -71,6 +72,20 @@ point `--output` at a directory with other files in it, those files are left alo
 | `0` | The site was generated. |
 | `1` | Doctize could not generate the site: a missing model, invalid configuration, invalid front matter ... The message names the file and the problem. |
 | `2` | Invalid command line usage. |
+
+## themes
+
+Lists the themes that `theme.name` and `--theme-name` can choose, with one line about each:
+
+```console
+$ doctize themes
+default   The built-in theme: indigo accents, system fonts.
+contrast  High contrast for accessibility: black on white, underlined links, strong focus rings.
+forest    Moss green on warm off-white; earthy in the dark.
+ocean     Teal and deep blue, cool neutrals and rounder corners.
+paper     A serif reading theme with a narrow text column, like a printed book.
+terminal  Monospace everywhere, square corners and a green prompt.
+```
 
 ## init
 

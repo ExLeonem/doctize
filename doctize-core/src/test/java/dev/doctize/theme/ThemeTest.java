@@ -56,6 +56,48 @@ class ThemeTest {
     }
 
     @Test
+    void aNamedThemeFromAProviderIsLayeredOverTheBuiltInTheme() {
+        Theme theme = Theme.of("sunset", null);
+
+        assertThat(theme.template("partials/footer")).contains("Sunset footer");
+        assertThat(theme.template("layout")).isEqualTo(Theme.builtIn().template("layout"));
+        assertThat(theme.assets()).containsKeys("css/theme.css", "css/themes/sunset.css");
+        assertThat(theme.stylesheets()).containsExactly("assets/css/themes/sunset.css");
+    }
+
+    @Test
+    void aCustomThemeDirectoryIsLayeredOverTheNamedTheme() throws IOException {
+        Files.createDirectories(dir.resolve("templates/partials"));
+        Files.writeString(dir.resolve("templates/partials/footer.mustache"), "Mine");
+
+        Theme theme = Theme.of("sunset", dir);
+
+        assertThat(theme.template("partials/footer")).isEqualTo("Mine");
+        assertThat(theme.stylesheets()).containsExactly("assets/css/themes/sunset.css");
+    }
+
+    @Test
+    void theBuiltInThemeCanBeNamedButNotReplaced() {
+        assertThat(Theme.of("default", null).stylesheets()).isEmpty();
+        assertThat(Theme.of("default", null).template("partials/footer")).isEqualTo(Theme.builtIn().template("partials/footer"));
+        assertThat(Theme.available()).extracting(NamedTheme::name).containsOnlyOnce("default").contains("sunset");
+    }
+
+    @Test
+    void anUnknownThemeNamesTheAvailableOnesAndWhereMoreComeFrom() {
+        assertThatThrownBy(() -> Theme.of("sunrise", null))
+                .isInstanceOf(DoctizeException.class)
+                .hasMessageContaining("Unknown theme 'sunrise'")
+                .hasMessageContaining("default, sunset")
+                .hasMessageContaining("dev.doctize:doctize-themes");
+    }
+
+    @Test
+    void themeNamesAreSimpleIdentifiers() {
+        assertThatThrownBy(() -> new NamedTheme("My Theme", "", "x", List.of())).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void templateEngineRendersPartialsAndEscapesByDefault() throws IOException {
         Files.createDirectories(dir.resolve("templates/partials"));
         Files.writeString(dir.resolve("templates/t.mustache"), "{{> partials/p}} {{name}} {{{raw}}} [{{missing}}]");

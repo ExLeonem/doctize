@@ -110,6 +110,32 @@ class DoctizeCliTest {
     }
 
     @Test
+    void theToolComesWithTheBundledThemes() {
+        Result result = run("themes");
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.out()).contains("default ").contains("ocean ").contains("paper ").contains("terminal ");
+    }
+
+    @Test
+    void generateUsesTheNamedTheme() throws IOException {
+        Path output = dir.resolve("site");
+
+        Result result = run("generate", "--model", writeModel().toString(), "--output", output.toString(), "--theme-name", "paper");
+
+        assertThat(result.exitCode()).as(result.err()).isZero();
+        assertThat(output.resolve("assets/css/themes/paper.css")).exists();
+    }
+
+    @Test
+    void anUnknownThemeIsAUserError() throws IOException {
+        Result result = run("generate", "--model", writeModel().toString(), "--output", dir.resolve("site").toString(), "--theme-name", "neon");
+
+        assertThat(result.exitCode()).isEqualTo(1);
+        assertThat(result.err()).contains("Unknown theme 'neon'").contains("ocean").doesNotContain("Exception");
+    }
+
+    @Test
     void generateCanPrepareTheOutputForGithubPages() throws IOException {
         Path output = dir.resolve("site");
 

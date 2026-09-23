@@ -24,8 +24,16 @@ All notable changes to Doctize are documented in this file. The format follows
   `Doctize.Builder#projectDefaults` fill in what `doctize.yml` does not set. The Gradle plugin passes the name of the root project
   and the version and description of the project.
 - When there is nothing to document, the message says where Doctize looked and what to check.
+- Ready-made themes in the new, optional module `doctize-themes`: `ocean`, `forest`, `paper`, `contrast` and `terminal`, each with a
+  light and a dark palette. Choose one with `theme.name` in `doctize.yml`, `--theme-name`, `Doctize.Builder#themeName` or `themeName`
+  in the Gradle plugin; `doctize themes` lists them. The command line tool (and so the Gradle plugin) comes with the module; users of
+  `doctize-core` add it to opt in. A theme directory is layered over a named theme.
+- `ThemeProvider` and `NamedTheme`: a jar can offer themes by name through `java.util.ServiceLoader`. The template variable
+  `theme.stylesheets` holds the named theme's stylesheets, which `partials/head` loads after `theme.css`.
 
 ### Changed
+
+- `ThemeSettings` has a new first component, `name`, and `LayoutFactory` takes the named theme's stylesheets.
 
 - The guide *Running from Gradle* describes the plugin; the `JavaExec` task it used to show remains as an alternative.
 - The `doctize.yml` of `doctize init` no longer sets `guides: docs`, which is the default.

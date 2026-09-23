@@ -16,6 +16,8 @@ anything else is a section, and adding one takes a folder or one line of YAML.
 * **Search that finds things.** Full-text, typo tolerant, camelCase aware ("builder" finds
   `CacheBuilder`), deep links to headings and API members, `Ctrl/⌘ K`. It runs offline and also works
   when the site is opened from the file system.
+* **Themes to pick from.** Besides the default: `ocean`, `forest`, `paper`, `contrast` (high contrast) and `terminal`,
+  in the optional module `doctize-themes`; one line of YAML (`theme.name: paper`) chooses one.
 * **A theme you can change in ten minutes.** Light and dark mode, syntax highlighting rendered at build
   time (no JavaScript needed to read), code tabs, admonitions, responsive layout. Override one template,
   one stylesheet or everything.

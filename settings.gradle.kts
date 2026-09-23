@@ -7,6 +7,7 @@ rootProject.name = "doctize"
 include(
     "doctize-annotations",
     "doctize-core",
+    "doctize-themes",
     "doctize-processor",
     "doctize-cli",
     "doctize-gradle-plugin",

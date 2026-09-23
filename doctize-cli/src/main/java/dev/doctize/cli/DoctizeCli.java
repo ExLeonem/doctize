@@ -9,7 +9,7 @@ import picocli.CommandLine.Command;
         description = "Generates a documentation site from annotated Java code and Markdown guides.",
         mixinStandardHelpOptions = true,
         versionProvider = CliVersion.class,
-        subcommands = {GenerateCommand.class, InitCommand.class})
+        subcommands = {GenerateCommand.class, InitCommand.class, ThemesCommand.class})
 public final class DoctizeCli implements Runnable {
 
     public static void main(String[] args) {

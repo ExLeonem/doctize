@@ -60,6 +60,11 @@ public abstract class DoctizeGenerate extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getTheme();
 
+    @Optional
+    @Input
+    @Option(option = "theme-name", description = "A named theme, e.g. ocean.")
+    public abstract Property<String> getThemeName();
+
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getAdditionalInputs();
@@ -120,6 +125,7 @@ public abstract class DoctizeGenerate extends DefaultTask {
                 .options("--model", models)
                 .option("--guides", getGuides().getAsFile().getOrNull())
                 .option("--theme", getTheme().getAsFile().getOrNull())
+                .option("--theme-name", getThemeName().getOrNull())
                 .option("--output", getOutput().get().getAsFile())
                 .flag("--github-pages", getGithubPages().get())
                 .option("--base-url", getBaseUrl().getOrNull())

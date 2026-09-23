@@ -8,6 +8,8 @@ description = "The doctize command line tool: generates and previews documentati
 
 dependencies {
     implementation(project(":doctize-core"))
+    // The command line tool is an application: it comes with every theme, so `theme.name` works without further setup.
+    runtimeOnly(project(":doctize-themes"))
     implementation(libs.picocli)
 
     testImplementation(platform(libs.junit.bom))

@@ -7,7 +7,8 @@ import java.util.Map;
 /**
  * How the site looks.
  *
- * @param path directory of a custom theme layered over the built-in one, may be empty
+ * @param name a named theme layered over the built-in one, e.g. {@code ocean}, see {@code doctize themes}; may be empty
+ * @param path directory of a custom theme layered over the built-in one (and the named theme), may be empty
  * @param accent CSS colour used for links and highlights, may be empty for the theme default
  * @param extraCss stylesheets (relative to the config file) added after the theme's own
  * @param extraJs scripts (relative to the config file) added after the theme's own
@@ -15,9 +16,10 @@ import java.util.Map;
  */
 @Doc(group = "Configuration", order = 22)
 public record ThemeSettings(
-        String path, String accent, List<String> extraCss, List<String> extraJs, Map<String, String> options) {
+        String name, String path, String accent, List<String> extraCss, List<String> extraJs, Map<String, String> options) {
 
     public ThemeSettings {
+        name = name == null ? "" : name;
         path = path == null ? "" : path;
         accent = accent == null ? "" : accent;
         extraCss = extraCss == null ? List.of() : List.copyOf(extraCss);
@@ -26,6 +28,6 @@ public record ThemeSettings(
     }
 
     public static ThemeSettings defaults() {
-        return new ThemeSettings("", "", List.of(), List.of(), Map.of());
+        return new ThemeSettings("", "", "", List.of(), List.of(), Map.of());
     }
 }

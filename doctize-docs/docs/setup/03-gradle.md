@@ -107,6 +107,7 @@ doctize {
 | `config` | The configuration file, see [Configuration](04-configuration.md) | `doctize.yml`, if it exists |
 | `guides` | The directory with the Markdown guides | `docs`, if it exists |
 | `theme` | A custom [theme](../guides/03-theming.md) directory | The built-in theme |
+| `themeName` | A [ready-made theme](../guides/03-theming.md#ready-made-themes) such as `ocean` | `theme.name` of `doctize.yml`, else the built-in theme |
 | `output` | Where the site is written | `build/docs` |
 | `models` | What the annotation processor produced: class directories, `model.json` files or jars | The main source set |
 | `modules(...)` | Documents other Java projects, see [Several modules](#several-modules) | |
@@ -131,7 +132,7 @@ $ ./gradlew generateDocs --github-pages --base-url=https://acme.github.io/cache/
 $ ./gradlew generateDocs --fail-on-warnings
 ```
 
-The options are `--github-pages`, `--base-url`, `--custom-domain` and `--fail-on-warnings`. Anything else
+The options are `--github-pages`, `--base-url`, `--custom-domain`, `--theme-name` and `--fail-on-warnings`. Anything else
 can be given as the project property `doctizeArgs`, which is what the workflow of
 [Publishing to GitHub Pages](05-github-pages.md) does:
 

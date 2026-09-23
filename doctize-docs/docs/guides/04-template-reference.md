@@ -43,6 +43,8 @@ The frame of every page. Its context is a `LayoutView`.
 
 | Variable | Meaning |
 |----------|---------|
+| `theme.name` | the configured theme name; empty for the built-in theme |
+| `theme.stylesheets` | the stylesheets of the named theme, URLs relative to the site root, `{{.}}` inside a loop; `partials/head` loads them after `theme.css` |
 | `theme.accent` | the configured accent colour |
 | `theme.extraCss`, `theme.extraJs` | lists of URLs (relative to the site root), `{{.}}` inside a loop |
 | `theme.options` | the values of `theme.options` in the configuration: `{{theme.options.banner}}` |
