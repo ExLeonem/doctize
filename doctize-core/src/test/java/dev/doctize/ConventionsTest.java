@@ -90,6 +90,22 @@ class ConventionsTest {
     }
 
     @Test
+    void aBranchThatWasPushedIsLinkedToAndOneThatWasNotFallsBackToTheDefaultBranchOfTheRemote() throws IOException {
+        write(".git/config", "[remote \"origin\"]\n\turl = git@github.com:acme/cache.git\n");
+        write(".git/refs/remotes/origin/feature/search", "3f2a9c1d\n");
+        write(".git/packed-refs", "# pack-refs with: peeled fully-peeled sorted\n9b1c refs/remotes/origin/master\n");
+
+        write(".git/HEAD", "ref: refs/heads/feature/search\n");
+        assertThat(Conventions.revision(dir)).hasValue("feature/search");
+
+        write(".git/HEAD", "ref: refs/heads/local-only\n");
+        assertThat(Conventions.revision(dir)).as("main or master, whichever the remote has").hasValue("master");
+
+        write(".git/refs/remotes/origin/HEAD", "ref: refs/remotes/origin/develop\n");
+        assertThat(Conventions.revision(dir)).as("the remote's HEAD names the default branch").hasValue("develop");
+    }
+
+    @Test
     void aWorktreeHasItsOwnRevision() throws IOException {
         write("main/.git/HEAD", "ref: refs/heads/main\n");
         write("main/.git/worktrees/feature/HEAD", "ref: refs/heads/feature\n");

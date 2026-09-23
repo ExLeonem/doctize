@@ -40,7 +40,6 @@ The frame of every page. Its context is a `LayoutView`.
 |----------|---------|
 | `project.name`, `project.tagline`, `project.version` | as configured |
 | `project.repository`, `project.footer` | as configured; empty if not set, so `{{#project.repository}}` works as a test |
-| `project.github` | `true` if `project.repository` is on github.com, for the right icon |
 
 ### theme
 
@@ -56,8 +55,7 @@ The frame of every page. Its context is a `LayoutView`.
 
 A list of sections. Each has `id`, `title`, `url` (its first page), `current` (the page is in this section),
 `area` (`api` for a section of API pages, else `guides`) and `groups`. A group has a `label` (may be empty) and
-`items`; an item has `title`, `url`, `current`, `deprecated` and `headings`, the top-level "On this page" entries
-(`text`, `id`) of the current page, empty for all other pages.
+`items`; an item has `title`, `url`, `current` and `deprecated`.
 
 ## home
 

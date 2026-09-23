@@ -15,13 +15,14 @@ All notable changes to Doctize are documented in this file. The format follows
   `field`, `enum constant`, or `page` and `section` in guides. A selector in the search dialog limits the search to the API reference
   or the guides, and is remembered. API pages are found by the names of types and members only: their descriptions are neither
   searched nor shown. The records of `search-index.js` have `kind` and `area`; `DoctizeSearch.search` takes a `scope`.
-- Links from API pages to the source: a code icon next to every type and member opens the file at the line of its declaration.
+- Links from API pages to the source: a code icon next to every type and member opens the file at the line of its declaration in a new tab.
   The annotation processor records the location (`SourceElement#location`, relative to the Git repository); the address is derived
-  for GitHub, GitLab, Bitbucket and Codeberg from `project.repository` and the checked-out branch or commit, or set with the new
+  for GitHub, GitLab, Bitbucket and Codeberg from `project.repository` and the checked-out branch (if the remote has it, else the
+  remote's default branch) or commit, or set with the new
   `project.sourceUrl` (`{path}`, `{line}`). Templates get `sourceUrl` on types and members.
-- A button in the top bar collapses the navigation on large screens; the choice is remembered.
-- Navigation in the style of HexDocs: tabs for "Guides" and "API reference" above the sidebar when a site has both, and the
-  headings of the current page below it in the sidebar. Templates get `navTabs`, `navigation[].area` and `items[].headings`.
+- A button at the right edge of the sidebar slides the navigation out and back in on large screens; the choice is remembered.
+- Navigation in the style of HexDocs: tabs for "Guides" and "API reference" above the sidebar when a site has both. Templates get
+  `navTabs` and `navigation[].area`.
 - Mermaid diagrams in guides: a fenced code block with the language `mermaid` is drawn in the browser. The Mermaid library (12.0.0, MIT) is
   bundled and copied into a site only if a page has a diagram, so diagrams work offline; a theme needs `diagrams.js`, which the default layout has.
 - The Gradle plugin `dev.doctize` (`doctize-gradle-plugin`). In a Java project it adds the annotations and the annotation
@@ -49,8 +50,6 @@ All notable changes to Doctize are documented in this file. The format follows
 
 ### Changed
 
-- The GitHub logo in the top bar is only shown for a repository on github.com; other repositories get a generic icon.
-  Templates get `project.github`.
 - `ThemeSettings` has a new first component, `name`, and `LayoutFactory` takes the named theme's stylesheets.
 
 - The guide *Running from Gradle* describes the plugin; the `JavaExec` task it used to show remains as an alternative.

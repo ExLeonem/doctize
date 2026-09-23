@@ -109,14 +109,6 @@ class LayoutFactoryTest {
     }
 
     @Test
-    void theCurrentPageListsItsTopLevelHeadingsInTheNavigation() {
-        var items = factory(Optional.empty()).forPage(rendered(1)).navigation().getFirst().groups().getFirst().items();
-
-        assertThat(items.get(1).headings()).extracting(Views.TocItemView::text).containsExactly("H");
-        assertThat(items.getFirst().headings()).isEmpty();
-    }
-
-    @Test
     void groupsAreLabelledByTheirPackage() {
         NavSectionView api = factory(Optional.empty()).forPage(rendered(0)).navigation().get(1);
 
@@ -176,10 +168,9 @@ class LayoutFactoryTest {
     }
 
     @Test
-    void theGitHubIconIsOnlyForRepositoriesOnGitHub() {
-        assertThat(projectFor("https://github.com/acme/cache").github()).isTrue();
-        assertThat(projectFor("https://gitlab.com/acme/cache").github()).isFalse();
-        assertThat(projectFor("").github()).isFalse();
+    void theRepositoryIconNeedsARepository() {
+        assertThat(projectFor("https://gitlab.com/acme/cache").repository()).isEqualTo("https://gitlab.com/acme/cache");
+        assertThat(projectFor("").repository()).isEmpty();
     }
 
     private static Views.ProjectView projectFor(String repository) {

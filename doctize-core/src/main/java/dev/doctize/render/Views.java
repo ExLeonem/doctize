@@ -16,13 +16,11 @@ public final class Views {
 
     private Views() {}
 
-    /** {@code github} is true if {@code repository} is on github.com, for the right icon. */
-    public record ProjectView(String name, String tagline, String version, String repository, String footer, boolean github) {}
+    public record ProjectView(String name, String tagline, String version, String repository, String footer) {}
 
     public record ThemeView(String name, List<String> stylesheets, String accent, List<String> extraCss, List<String> extraJs, Map<String, String> options) {}
 
-    /** A page in the navigation; {@code headings} lists the top-level headings of the current page, and is empty for all others. */
-    public record NavItemView(String title, String url, boolean current, boolean deprecated, List<TocItemView> headings) {}
+    public record NavItemView(String title, String url, boolean current, boolean deprecated) {}
 
     public record NavGroupView(String label, List<NavItemView> items) {}
 

@@ -53,13 +53,8 @@ public final class LayoutFactory {
         ProjectInfo info = site.project();
         this.baseUrl = baseUrl;
         this.site = site;
-        this.project = new ProjectView(
-                info.name(), info.tagline(), info.version(), info.repository(), info.footer(), isGitHub(info.repository()));
+        this.project = new ProjectView(info.name(), info.tagline(), info.version(), info.repository(), info.footer());
         this.theme = new ThemeView(settings.name(), themeCss, settings.accent(), extraCss, extraJs, settings.options());
-    }
-
-    private static boolean isGitHub(String repository) {
-        return repository.matches("(?i)https?://(www\\.)?github\\.com/.*");
     }
 
     public LayoutView forPage(RenderedPage rendered) {
@@ -76,7 +71,7 @@ public final class LayoutFactory {
                 rendered.html(),
                 project,
                 theme,
-                navigation(page, rendered.toc()),
+                navigation(page),
                 rendered.toc().stream().map(LayoutFactory::tocItem).toList(),
                 breadcrumb(page),
                 index > 0 ? pagerLink(reading.get(index - 1)) : null,
@@ -96,7 +91,7 @@ public final class LayoutFactory {
                 contentHtml,
                 project,
                 theme,
-                navigation(null, List.of()),
+                navigation(null),
                 List.of(),
                 null,
                 null,
@@ -117,7 +112,7 @@ public final class LayoutFactory {
                 contentHtml,
                 project,
                 theme,
-                navigation(null, List.of()),
+                navigation(null),
                 List.of(),
                 null,
                 null,
@@ -136,8 +131,8 @@ public final class LayoutFactory {
         return new HomeView(introHtml, cards, project, startUrl);
     }
 
-    private List<NavSectionView> navigation(SitePage current, List<TocEntry> currentToc) {
-        return site.sections().stream().map(section -> navSection(section, current, currentToc)).toList();
+    private List<NavSectionView> navigation(SitePage current) {
+        return site.sections().stream().map(section -> navSection(section, current)).toList();
     }
 
     /** One tab per area, in the order the areas first appear; none if all sections are in the same area. */
@@ -163,7 +158,7 @@ public final class LayoutFactory {
         return api ? API : GUIDES;
     }
 
-    private static NavSectionView navSection(Section section, SitePage current, List<TocEntry> currentToc) {
+    private static NavSectionView navSection(Section section, SitePage current) {
         List<NavGroupView> groups = new ArrayList<>();
         String label = null;
         List<NavItemView> items = new ArrayList<>();
@@ -174,7 +169,7 @@ public final class LayoutFactory {
                 items.clear();
             }
             label = group;
-            items.add(navItem(page, current, currentToc));
+            items.add(navItem(page, current));
         }
         if (!items.isEmpty()) {
             groups.add(new NavGroupView(label, List.copyOf(items)));
@@ -183,20 +178,16 @@ public final class LayoutFactory {
         return new NavSectionView(section.id(), section.title(), section.pages().getFirst().url(), isCurrent, groups, area(section));
     }
 
-    private static NavItemView navItem(SitePage page, SitePage current, List<TocEntry> currentToc) {
+    private static NavItemView navItem(SitePage page, SitePage current) {
         boolean deprecated = page.page().content() instanceof PageContent.Type type
                 && type.element().declaration().isDeprecated();
-        boolean isCurrent = page.equals(current);
-        List<TocItemView> headings = isCurrent
-                ? currentToc.stream().filter(entry -> entry.level() == 2).map(LayoutFactory::tocItem).toList()
-                : List.of();
-        return new NavItemView(page.title(), page.url(), isCurrent, deprecated, headings);
+        return new NavItemView(page.title(), page.url(), page.equals(current), deprecated);
     }
 
     private static SectionCardView card(Section section) {
         List<NavItemView> preview = section.pages().stream()
                 .limit(CARD_PREVIEW_PAGES)
-                .map(page -> navItem(page, null, List.of()))
+                .map(page -> navItem(page, null))
                 .toList();
         int count = section.pages().size();
         String label = count == 1 ? "1 page" : count + " pages";

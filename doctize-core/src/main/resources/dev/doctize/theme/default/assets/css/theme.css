@@ -167,8 +167,6 @@ kbd {
 .icon-btn:hover { color: var(--text); background: var(--bg-subtle); text-decoration: none; }
 
 .nav-toggle { display: none; }
-.sidebar-toggle { margin-left: -6px; }
-.sidebar-collapsed .sidebar-toggle { color: var(--accent); }
 .icon-moon { display: none; }
 :root[data-theme="dark"] .icon-sun { display: none; }
 :root[data-theme="dark"] .icon-moon { display: block; }
@@ -225,8 +223,6 @@ kbd {
 }
 .nav-tab:hover { color: var(--text); }
 .nav-tab[aria-selected="true"] { color: var(--accent); background: var(--bg-raised); box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12); }
-.sidebar ul.nav-headings { margin: 2px 0 6px 14px; border-left: 1px solid var(--border); }
-.sidebar ul.nav-headings a { padding: 3px 10px; font-size: 13.5px; border-radius: 0 7px 7px 0; }
 
 .nav-section { margin-bottom: 6px; }
 .nav-section > summary {
@@ -517,8 +513,27 @@ code.type { background: none; border: 0; padding: 0; }
 
 /* ---------- Responsive ---------- */
 
+/* Collapsing the navigation (large screens): the sidebar slides out to the left, the button stays at its right edge. */
 @media (min-width: 901px) {
-  .sidebar-collapsed .sidebar { display: none; }
+  .shell { overflow-x: clip; }
+  .sidebar {
+    transition: margin-left 0.25s ease, opacity 0.2s ease, visibility 0s;
+  }
+  .sidebar-collapsed .sidebar {
+    margin-left: calc(-1 * var(--sidebar-width)); opacity: 0; visibility: hidden;
+    transition: margin-left 0.25s ease, opacity 0.2s ease, visibility 0s linear 0.25s;
+  }
+  .sidebar-toggle {
+    position: sticky; top: calc(var(--topbar-height) + 20px); z-index: 5;
+    flex: none; display: grid; place-items: center; width: 26px; height: 26px; margin: 20px -22px 0 -4px;
+    color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12); cursor: pointer;
+    transition: margin 0.25s ease, color 0.15s, border-color 0.15s;
+  }
+  .sidebar-toggle:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .sidebar-toggle svg { transition: transform 0.25s ease; }
+  .sidebar-collapsed .sidebar-toggle { margin-left: 10px; margin-right: -36px; }
+  .sidebar-collapsed .sidebar-toggle svg { transform: rotate(180deg); }
 }
 
 @media (max-width: 1180px) {

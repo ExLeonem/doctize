@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * What Doctize finds by itself when a setting is left out, so that a project with the usual layout needs no configuration:
@@ -53,20 +54,56 @@ final class Conventions {
      */
     static Optional<String> repository(Path baseDirectory) {
         return gitConfig(baseDirectory.toAbsolutePath().normalize())
-                .flatMap(Conventions::remoteUrl)
+                .flatMap(Conventions::remote)
+                .map(Remote::url)
                 .flatMap(Conventions::webAddress);
     }
 
+    /** A remote of the Git configuration. */
+    private record Remote(String name, String url) {}
+
     /**
-     * What the working tree of the directory has checked out, for links to its sources: the branch, or the commit if no
-     * branch is checked out, as in most continuous integration builds.
+     * The revision that links to the sources point to, so that they work for readers of the repository's web site: the checked-out
+     * branch if the remote has it; else the default branch of the remote, since the local branch was never pushed; and the commit
+     * if no branch is checked out, as in most continuous integration builds.
      */
     static Optional<String> revision(Path baseDirectory) {
-        return gitDirectory(baseDirectory.toAbsolutePath().normalize())
-                .flatMap(gitDir -> existing(gitDir.resolve("HEAD")))
-                .map(head -> read(head).strip())
-                .filter(head -> !head.isEmpty())
-                .map(head -> head.startsWith("ref:") ? head.substring(4).strip().replaceFirst("^refs/heads/", "") : head);
+        Optional<Path> gitDir = gitDirectory(baseDirectory.toAbsolutePath().normalize());
+        if (gitDir.isEmpty()) {
+            return Optional.empty();
+        }
+        String head = existing(gitDir.get().resolve("HEAD")).map(file -> read(file).strip()).orElse("");
+        if (head.isEmpty()) {
+            return Optional.empty();
+        }
+        if (!head.startsWith("ref:")) {
+            return Optional.of(head);
+        }
+        String branch = head.substring(4).strip().replaceFirst("^refs/heads/", "");
+        Path common = commonDirectory(gitDir.get());
+        Optional<String> remote = existing(common.resolve("config")).flatMap(Conventions::remote).map(Remote::name);
+        if (remote.isEmpty() || hasRef(common, "refs/remotes/" + remote.get() + "/" + branch)) {
+            return Optional.of(branch);
+        }
+        return Optional.of(defaultBranch(common, remote.get()).orElse(branch));
+    }
+
+    /** What {@code refs/remotes/<remote>/HEAD} points to, else {@code main} or {@code master} if the remote has it. */
+    private static Optional<String> defaultBranch(Path common, String remote) {
+        String prefix = "refs/remotes/" + remote + "/";
+        Optional<String> head = existing(common.resolve(prefix + "HEAD"))
+                .map(file -> read(file).strip())
+                .filter(ref -> ref.startsWith("ref: " + prefix))
+                .map(ref -> ref.substring(("ref: " + prefix).length()));
+        return head.or(() -> Stream.of("main", "master").filter(name -> hasRef(common, prefix + name)).findFirst());
+    }
+
+    /** A ref is a file below the Git directory, or a line of {@code packed-refs}. */
+    private static boolean hasRef(Path common, String ref) {
+        return Files.isRegularFile(common.resolve(ref))
+                || existing(common.resolve("packed-refs")).stream()
+                        .flatMap(file -> read(file).lines())
+                        .anyMatch(line -> line.endsWith(" " + ref));
     }
 
     private static Optional<Path> gitConfig(Path directory) {
@@ -96,9 +133,10 @@ final class Conventions {
         return Files.isRegularFile(commonDir) ? gitDir.resolve(read(commonDir).strip()).normalize() : gitDir;
     }
 
-    private static Optional<String> remoteUrl(Path config) {
+    /** The remote {@code origin}, or else the first remote. */
+    private static Optional<Remote> remote(Path config) {
         String remote = null;
-        String first = null;
+        Remote first = null;
         for (String line : read(config).lines().toList()) {
             Matcher section = SECTION.matcher(line);
             if (section.matches()) {
@@ -112,9 +150,9 @@ final class Conventions {
             Matcher url = URL.matcher(line);
             if (remote != null && url.matches()) {
                 if (remote.equals("origin")) {
-                    return Optional.of(url.group(1));
+                    return Optional.of(new Remote(remote, url.group(1)));
                 }
-                first = first == null ? url.group(1) : first;
+                first = first == null ? new Remote(remote, url.group(1)) : first;
             }
         }
         return Optional.ofNullable(first);
