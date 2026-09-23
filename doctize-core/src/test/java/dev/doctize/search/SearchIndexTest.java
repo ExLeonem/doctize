@@ -9,7 +9,7 @@ class SearchIndexTest {
 
     @Test
     void indexIsAScriptSoItWorksFromTheFileSystem() {
-        String script = SearchIndexWriter.toScript(List.of(new SearchRecord("a.html#x", "T", "S", "H", "text </script> end", "k")));
+        String script = SearchIndexWriter.toScript(List.of(new SearchRecord("a.html#x", "T", "S", "H", "text </script> end", "k", "section", "guides")));
 
         assertThat(script).startsWith("window.DOCTIZE_SEARCH_INDEX = {").endsWith(";\n");
         assertThat(script).contains("\"url\":\"a.html#x\"").doesNotContain("</script>");

@@ -80,7 +80,8 @@ final class CodeBlockRenderer implements NodeRenderer {
         if (!language.isEmpty()) {
             out.append(" class=\"language-").append(Html.escape(language)).append('"');
         }
-        return out.append('>').append(highlighter.highlight(code, language)).append("</code></pre></div>").toString();
+        String highlighted = CodeMarks.render(code, info.links(), plain -> highlighter.highlight(plain, language));
+        return out.append('>').append(highlighted).append("</code></pre></div>").toString();
     }
 
     private static boolean isTabbed(Node node) {

@@ -120,7 +120,7 @@ A parameter table is shown when at least one parameter of the member is document
 | `{@link #member}` | a member of the type you are in |
 | `{@linkplain Type label}` | the same, with a plain label |
 | `{@summary text}` | sets the summary explicitly |
-| `{@snippet lang=java : code}` | a code block (inline content only) |
+| `{@snippet : code}` | an example: a highlighted code block, inline or from a file, see [Examples](#examples-with-snippet) |
 
 A reference is resolved against every documented type: by simple name (`Cache`), qualified name
 (`com.acme.Cache`), or `Outer.Inner`. When it cannot be resolved, only the label is shown, so a link to a
@@ -133,6 +133,70 @@ Inside a method reference, a type variable such as `K` is written as `Object`, e
 `{@link Cache#put(Object, Object)}`.
 
 Inline tags are not interpreted inside code spans and fenced code blocks, so you can show them literally.
+
+## Examples with `@snippet`
+
+`{@snippet}` (JEP 413) shows an example as a highlighted code block with a copy button. The code follows a colon:
+
+```java
+/**
+ * Creates a cache.
+ *
+ * {@snippet :
+ * Cache<String, User> users = Cache.builder()   // @highlight substring="builder"
+ *         .maximumSize(1_000)
+ *         .build();
+ * }
+ */
+```
+
+The language is Java unless `lang` says otherwise: `{@snippet lang=yaml : ...}`.
+
+### Markup comments
+
+Comments starting with `@highlight`, `@replace`, `@link`, `@start` or `@end` change what is shown and are removed
+from it. A comment applies to its own line, to the next line if it ends with a colon, or, with `region`, to all lines
+up to the matching `// @end`. Use `#` instead of `//` in languages such as YAML or properties.
+
+| Markup | Effect |
+|--------|--------|
+| `// @highlight` | the line in bold; `substring="..."` or `regex="..."` for part of it, `type=italic` or `type=highlighted` for another style |
+| `// @replace regex='".*"' replacement='"..."'` | shows the line with the replacement, e.g. to hide a value |
+| `// @link substring="Cache" target="Cache#get(Object)"` | links the text to a documented type or member, like `{@link}` |
+| `// @highlight region` ... `// @end` | applies to all lines in between |
+| `// @start region=setup` ... `// @end` | names a region of an external file, see below |
+
+### Examples from files
+
+Keep longer examples in real source files, where the compiler checks them, and show them with `file` or `class`:
+
+```java
+/** {@snippet file="Usage.java" region="setup"} */
+/** {@snippet class=com.acme.examples.CacheExample} */
+```
+
+`region` shows only the lines from `// @start region=setup` to its `// @end`. The language follows from the file extension.
+
+The annotation processor reads the files while compiling, from these places:
+
+1. the `snippet-files` directory next to the source file, e.g. `src/main/java/com/acme/snippet-files/Usage.java`
+2. the directories of the processor option `doctize.snippetPath` (separated like a class path), where `class=com.acme.Example`
+   stands for `com/acme/Example.java`
+
+Examples in your test sources are compiled and can run as tests. With Gradle:
+
+```kotlin title="build.gradle.kts"
+tasks.compileJava {
+    options.compilerArgs.add("-Adoctize.snippetPath=${file("src/test/java")}")
+    inputs.dir("src/test/java")   // recompile, and so update the docs, when an example changes
+}
+```
+
+Give the option absolute paths, as above: the compiler may not run in the project directory. Gradle compiles
+every `.java` file under `src/main/java`, `snippet-files` included, so either keep examples in a snippet path or
+exclude them with `sourceSets.main { java.exclude("**/snippet-files/**") }`.
+
+A file or region that cannot be found is a warning, both when compiling and when generating the site.
 
 ## Markdown features
 

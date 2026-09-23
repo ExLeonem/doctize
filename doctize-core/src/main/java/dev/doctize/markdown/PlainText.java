@@ -47,7 +47,7 @@ final class PlainText extends AbstractVisitor {
 
     @Override
     public void visit(FencedCodeBlock node) {
-        text.append(node.getLiteral()).append(' ');
+        text.append(CodeMarks.strip(node.getLiteral())).append(' ');
     }
 
     @Override

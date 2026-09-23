@@ -3,12 +3,14 @@ package dev.doctize.render;
 import dev.doctize.javadoc.InlineTagProcessor;
 import dev.doctize.javadoc.JavadocParser;
 import dev.doctize.javadoc.LinkResolver;
+import dev.doctize.javadoc.SnippetSource;
 import dev.doctize.javadoc.Summaries;
 import dev.doctize.markdown.CodeHighlighter;
 import dev.doctize.markdown.MarkdownRenderer;
 import dev.doctize.markdown.RenderedMarkdown;
 import dev.doctize.markdown.TextChunk;
 import dev.doctize.markdown.TocEntry;
+import dev.doctize.model.SourceElement;
 import dev.doctize.render.Views.GuideView;
 import dev.doctize.site.Page;
 import dev.doctize.site.PageContent;
@@ -66,11 +68,11 @@ public final class PageRenderer {
 
     /** Renders the Markdown introduction of the home page. */
     public String renderIntro(String markdownText) {
-        return markdownText.isBlank() ? "" : fragmentsFor(HOME, "index.md").html(markdownText, "");
+        return markdownText.isBlank() ? "" : fragmentsFor(HOME, "index.md", SnippetSource.none()).html(markdownText, "");
     }
 
     private RenderedPage renderGuide(SitePage page, PageContent.Guide guide) {
-        Fragments fragments = fragmentsFor(page, guide.sourcePath());
+        Fragments fragments = fragmentsFor(page, guide.sourcePath(), SnippetSource.of(guide.snippets()));
         RenderedMarkdown body = fragments.render(guide.markdown(), "");
         String description = page.page().description();
         GuideView view = new GuideView(page.title(), fragments.inlineHtml(description), body.html());
@@ -80,7 +82,7 @@ public final class PageRenderer {
     }
 
     private RenderedPage renderType(SitePage page, PageContent.Type type) {
-        Fragments fragments = fragmentsFor(page, "");
+        Fragments fragments = fragmentsFor(page, "", SnippetSource.of(snippetsOf(type.element())));
         Function<String, Optional<String>> typeLinks =
                 name -> types.typeUrl(name).map(url -> Urls.relative(page.url(), url));
         TypeDocs docs = new ApiTypeViewFactory(fragments, highlighter, typeLinks).create(type.element(), page.title());
@@ -89,11 +91,15 @@ public final class PageRenderer {
         return new RenderedPage(page, templates.render("api-type", docs.view()), docs.toc(), docs.chunks(), summary);
     }
 
-    private Fragments fragmentsFor(SitePage page, String sourcePath) {
+    private Fragments fragmentsFor(SitePage page, String sourcePath, SnippetSource snippets) {
         LinkResolver resolver = reference -> types.resolve(reference, page).map(url -> Urls.relative(page.url(), url));
         return new Fragments(
                 markdown,
-                new InlineTagProcessor(resolver, reference -> reportUnresolved(page, reference)),
+                new InlineTagProcessor(
+                        resolver,
+                        reference -> reportUnresolved(page, reference),
+                        snippets,
+                        problem -> warnings.add(page.url() + ": " + problem)),
                 new GuideLinkRewriter(page.url(), sourcePath, pagesBySource, pagesByUrl));
     }
 
@@ -101,6 +107,13 @@ public final class PageRenderer {
         if (!JdkTypes.isKnown(reference)) {
             warnings.add(page.url() + ": {@link " + reference + "} does not refer to a documented type or member");
         }
+    }
+
+    /** The snippet files of a type and all its members; a member's comment may show a file just like the type's. */
+    private static Map<String, String> snippetsOf(SourceElement element) {
+        Map<String, String> files = new HashMap<>(element.snippets());
+        element.members().forEach(member -> files.putAll(snippetsOf(member)));
+        return files;
     }
 
     /** Only second and third level headings appear in the "on this page" navigation. */

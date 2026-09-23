@@ -31,6 +31,8 @@ The frame of every page. Its context is a `LayoutView`.
 | `toc` | list | The "On this page" entries: `text`, `id`, `nested` |
 | `section` | object or absent | The breadcrumb of the page's section: `title`, `url` |
 | `previous`, `next` | object or absent | The neighbouring pages: `title`, `section`, `url` |
+| `canonicalUrl` | text | The address of the page if the site's address is known, else empty |
+| `navTabs` | list | The tabs above the navigation: `area` (`guides` or `api`), `title`, `current`; empty unless the site has both |
 
 ### project
 
@@ -51,8 +53,10 @@ The frame of every page. Its context is a `LayoutView`.
 
 ### navigation
 
-A list of sections. Each has `id`, `title`, `url` (its first page), `current` (the page is in this section) and
-`groups`. A group has a `label` (may be empty) and `items`; an item has `title`, `url`, `current` and `deprecated`.
+A list of sections. Each has `id`, `title`, `url` (its first page), `current` (the page is in this section),
+`area` (`api` for a section of API pages, else `guides`) and `groups`. A group has a `label` (may be empty) and
+`items`; an item has `title`, `url`, `current`, `deprecated` and `headings`, the top-level "On this page" entries
+(`text`, `id`) of the current page, empty for all other pages.
 
 ## home
 

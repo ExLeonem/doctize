@@ -1,13 +1,21 @@
   <aside class="sidebar" id="sidebar">
+{{#navTabs}}{{#-first}}    <div class="nav-tabs" role="tablist" aria-label="Documentation areas" hidden>
+{{/-first}}      <button class="nav-tab" type="button" role="tab" data-nav-tab="{{area}}" aria-selected="{{#current}}true{{/current}}{{^current}}false{{/current}}">{{title}}</button>
+{{#-last}}    </div>
+{{/-last}}{{/navTabs}}
     <nav aria-label="Documentation">
 {{#navigation}}
-      <details class="nav-section"{{#current}} open{{/current}}{{#home}} open{{/home}}>
+      <details class="nav-section" data-area="{{area}}"{{#current}} open{{/current}}{{#home}} open{{/home}}>
         <summary>{{title}}</summary>
 {{#groups}}
 {{#label}}        <div class="nav-group">{{label}}</div>
 {{/label}}        <ul>
 {{#items}}
-          <li><a href="{{basePath}}{{url}}" class="{{#current}}is-current{{/current}}{{#deprecated}} is-deprecated{{/deprecated}}"{{#current}} aria-current="page"{{/current}}>{{title}}</a></li>
+          <li><a href="{{basePath}}{{url}}" class="{{#current}}is-current{{/current}}{{#deprecated}} is-deprecated{{/deprecated}}"{{#current}} aria-current="page"{{/current}}>{{title}}</a>{{#headings}}{{#-first}}
+            <ul class="nav-headings">{{/-first}}
+              <li><a href="#{{id}}">{{text}}</a></li>{{#-last}}
+            </ul>
+          {{/-last}}{{/headings}}</li>
 {{/items}}
         </ul>
 {{/groups}}

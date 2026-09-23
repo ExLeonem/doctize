@@ -14,7 +14,8 @@ anything else is a section, and adding one takes a folder or one line of YAML.
 * **Structure is yours.** Sections, their order and their teasers come from `doctize.yml`, from folders,
   from front matter or from code.
 * **Search that finds things.** Full-text, typo tolerant, camelCase aware ("builder" finds
-  `CacheBuilder`), deep links to headings and API members, `Ctrl/⌘ K`. It runs offline and also works
+  `CacheBuilder`), deep links to headings and API members, results tagged `class`, `method`, `field` ..., limited to the API or the guides
+  on request, `Ctrl/⌘ K`. It runs offline and also works
   when the site is opened from the file system.
 * **Themes to pick from.** Besides the default: `ocean`, `forest`, `paper`, `contrast` (high contrast) and `terminal`,
   in the optional module `doctize-themes`; one line of YAML (`theme.name: paper`) chooses one.

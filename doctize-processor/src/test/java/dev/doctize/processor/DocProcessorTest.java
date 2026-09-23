@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -38,12 +39,17 @@ class DocProcessorTest {
     }
 
     private SourceModel compile(JavaFileObject... sources) throws IOException {
+        return compile(List.of(), List.of(sources));
+    }
+
+    private SourceModel compile(List<String> extraOptions, List<? extends JavaFileObject> sources) throws IOException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-        List<String> options = List.of(
+        List<String> options = new ArrayList<>(List.of(
                 "-d", output.toString(), "-classpath", System.getProperty("java.class.path"),
-                "-processor", DocProcessor.class.getName());
-        Boolean success = compiler.getTask(new StringWriter(), null, diagnostics, options, null, List.of(sources)).call();
+                "-processor", DocProcessor.class.getName()));
+        options.addAll(extraOptions);
+        Boolean success = compiler.getTask(new StringWriter(), null, diagnostics, options, null, sources).call();
         assertThat(success).as(diagnostics.getDiagnostics().toString()).isTrue();
         assertThat(diagnostics.getDiagnostics()).noneMatch(d -> d.getKind() == Diagnostic.Kind.ERROR);
         return ModelLocator.load(output);
@@ -278,5 +284,35 @@ class DocProcessorTest {
                 null, List.of(source("demo/Plain.java", "package demo; public class Plain {}"))).call();
 
         assertThat(Files.exists(output.resolve("META-INF/doctize/model.json"))).isFalse();
+    }
+
+    @Test
+    void readsExternalSnippetsFromSnippetFilesAndTheSnippetPath(@TempDir Path sources) throws IOException {
+        Path pkg = Files.createDirectories(sources.resolve("src/demo"));
+        Files.createDirectories(pkg.resolve("snippet-files"));
+        Files.writeString(pkg.resolve("snippet-files/Usage.java"), "class Usage { /* usage */ }\n");
+        Path examples = Files.createDirectories(sources.resolve("examples/demo"));
+        Files.writeString(examples.resolve("Example.java"), "class Example { /* example */ }\n");
+        Files.writeString(pkg.resolve("Api.java"), """
+                package demo;
+
+                import dev.doctize.annotations.Doc;
+
+                /** {@snippet file="Usage.java"} */
+                @Doc
+                public class Api {
+                    /** {@snippet class=demo.Example region=main} */
+                    public void run() {}
+                }
+                """);
+        List<JavaFileObject> files = new ArrayList<>();
+        ToolProvider.getSystemJavaCompiler().getStandardFileManager(null, null, null)
+                .getJavaFileObjects(pkg.resolve("Api.java")).forEach(files::add);
+
+        SourceModel model = compile(List.of("-A" + SnippetFiles.PATH_OPTION + "=" + sources.resolve("examples")), files);
+
+        SourceElement api = element(model, "demo.Api");
+        assertThat(api.snippets()).containsEntry("file:Usage.java", "class Usage { /* usage */ }\n");
+        assertThat(api.members().getFirst().snippets()).containsEntry("class:demo.Example", "class Example { /* example */ }\n");
     }
 }

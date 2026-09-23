@@ -20,18 +20,30 @@ public final class InlineTagProcessor {
 
     private final LinkResolver links;
     private final Consumer<String> unresolvedLinks;
+    private final SnippetSource snippets;
+    private final Consumer<String> problems;
 
     public InlineTagProcessor(LinkResolver links) {
         this(links, reference -> {});
     }
 
+    public InlineTagProcessor(LinkResolver links, Consumer<String> unresolvedLinks) {
+        this(links, unresolvedLinks, SnippetSource.none(), problem -> {});
+    }
+
     /**
      * @param links resolves the targets of link tags
-     * @param unresolvedLinks told about the reference of every {@code {@link}} tag that {@code links} could not resolve
+     * @param unresolvedLinks told about the reference of every {@code {@link}} tag (and snippet {@code @link}) that
+     *     {@code links} could not resolve
+     * @param snippets the external files of {@code {@snippet}} tags
+     * @param problems told about other tags that cannot be shown as written, e.g. a snippet whose file is missing
      */
-    public InlineTagProcessor(LinkResolver links, Consumer<String> unresolvedLinks) {
+    public InlineTagProcessor(
+            LinkResolver links, Consumer<String> unresolvedLinks, SnippetSource snippets, Consumer<String> problems) {
         this.links = links;
         this.unresolvedLinks = unresolvedLinks;
+        this.snippets = snippets;
+        this.problems = problems;
     }
 
     public String process(String text) {
@@ -209,10 +221,10 @@ public final class InlineTagProcessor {
                 case "link" -> link(body, true);
                 case "linkplain" -> link(body, false);
                 case "value" -> Markdown.code(body);
-                case "summary" -> new InlineTagProcessor(links, unresolvedLinks).process(body);
+                case "summary" -> new InlineTagProcessor(links, unresolvedLinks, snippets, problems).process(body);
                 case "index" -> Markdown.entities(unquote(body.split("\\s+", 2)[0]));
                 case "inheritDoc" -> "";
-                case "snippet" -> Snippet.toMarkdown(body);
+                case "snippet" -> Snippet.toMarkdown(body, snippets, links, unresolvedLinks, problems);
                 default -> Markdown.entities("{@" + name + " " + body + "}");
             };
         }

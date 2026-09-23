@@ -88,6 +88,35 @@ class LayoutFactoryTest {
     }
 
     @Test
+    void guidesAndApiPagesGetATabEachAndThePageSelectsItsOwn() {
+        LayoutView guidePage = factory(Optional.empty()).forPage(rendered(0));
+        LayoutView apiPage = factory(Optional.empty()).forPage(rendered(2));
+
+        assertThat(guidePage.navigation()).extracting(NavSectionView::area).containsExactly("guides", "api");
+        assertThat(guidePage.navTabs()).extracting(Views.NavTabView::title).containsExactly("Guides", "API reference");
+        assertThat(guidePage.navTabs()).extracting(Views.NavTabView::current).containsExactly(true, false);
+        assertThat(apiPage.navTabs()).extracting(Views.NavTabView::current).containsExactly(false, true);
+        assertThat(factory(Optional.empty()).forHome("").navTabs()).extracting(Views.NavTabView::current).containsExactly(true, false);
+    }
+
+    @Test
+    void aSiteWithOnlyGuidesHasNoTabs() {
+        Site guides = siteWithSections(List.of(), guide("only", "Only", "s", "x", ""));
+
+        LayoutView view = new LayoutFactory(guides, ThemeSettings.defaults(), List.of(), List.of(), List.of(), Optional.empty()).forHome("");
+
+        assertThat(view.navTabs()).isEmpty();
+    }
+
+    @Test
+    void theCurrentPageListsItsTopLevelHeadingsInTheNavigation() {
+        var items = factory(Optional.empty()).forPage(rendered(1)).navigation().getFirst().groups().getFirst().items();
+
+        assertThat(items.get(1).headings()).extracting(Views.TocItemView::text).containsExactly("H");
+        assertThat(items.getFirst().headings()).isEmpty();
+    }
+
+    @Test
     void groupsAreLabelledByTheirPackage() {
         NavSectionView api = factory(Optional.empty()).forPage(rendered(0)).navigation().get(1);
 

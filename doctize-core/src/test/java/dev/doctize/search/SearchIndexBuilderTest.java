@@ -1,7 +1,9 @@
 package dev.doctize.search;
 
+import static dev.doctize.Fixtures.apiPage;
 import static dev.doctize.Fixtures.guide;
 import static dev.doctize.Fixtures.site;
+import static dev.doctize.Fixtures.type;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.doctize.markdown.TextChunk;
@@ -27,8 +29,8 @@ class SearchIndexBuilderTest {
                 rendered(0, "s", new TextChunk("", "", "Intro text."), new TextChunk("setup", "Setup", "Do this."))));
 
         assertThat(records).containsExactly(
-                new SearchRecord("s/k.html", "Keyed", "S", "", "Intro text.", "alpha beta"),
-                new SearchRecord("s/k.html#setup", "Keyed", "S", "Setup", "Do this.", ""));
+                new SearchRecord("s/k.html", "Keyed", "S", "", "Intro text.", "alpha beta", "page", "guides"),
+                new SearchRecord("s/k.html#setup", "Keyed", "S", "Setup", "Do this.", "", "section", "guides"));
     }
 
     @Test
@@ -45,7 +47,7 @@ class SearchIndexBuilderTest {
                 rendered(0, "The summary.", new TextChunk("first", "First", "text"))));
 
         assertThat(records).hasSize(2);
-        assertThat(records.getFirst()).isEqualTo(new SearchRecord("s/k.html", "Keyed", "S", "", "The summary.", "alpha beta"));
+        assertThat(records.getFirst()).isEqualTo(new SearchRecord("s/k.html", "Keyed", "S", "", "The summary.", "alpha beta", "page", "guides"));
         assertThat(records.get(1).url()).isEqualTo("s/k.html#first");
     }
 
@@ -53,6 +55,32 @@ class SearchIndexBuilderTest {
     void aPageWithoutAnyTextIsStillFindableByItsTitle() {
         List<SearchRecord> records = new SearchIndexBuilder(site).build(List.of(rendered(1, "Only a summary.")));
 
-        assertThat(records).containsExactly(new SearchRecord("s/plain.html", "Plain", "S", "", "Only a summary.", ""));
+        assertThat(records).containsExactly(new SearchRecord("s/plain.html", "Plain", "S", "", "Only a summary.", "", "page", "guides"));
+    }
+
+    @Test
+    void apiRecordsAreTaggedWithTheKindOfTypeOrMemberAndBelongToTheApiArea() {
+        Site apiSite = site(apiPage(type("com.acme.Cache", "")));
+        RenderedPage page = new RenderedPage(apiSite.pages().getFirst(), "", List.of(), List.of(
+                new TextChunk("", "", "A cache."),
+                new TextChunk("method-get", "get()", "Reads.", "method")), "");
+
+        List<SearchRecord> records = new SearchIndexBuilder(apiSite).build(List.of(page));
+
+        assertThat(records).extracting(SearchRecord::kind).containsExactly("class", "method");
+        assertThat(records).extracting(SearchRecord::area).containsOnly(SearchRecord.API);
+    }
+
+    @Test
+    void apiRecordsCarryNoDescriptionSoTheyAreFoundByNameOnly() {
+        Site apiSite = site(apiPage(type("com.acme.Cache", "")));
+        RenderedPage page = new RenderedPage(apiSite.pages().getFirst(), "", List.of(), List.of(
+                new TextChunk("", "", "A cache."),
+                new TextChunk("method-get", "get()", "Reads a value.", "method")), "A cache.");
+
+        List<SearchRecord> records = new SearchIndexBuilder(apiSite).build(List.of(page));
+
+        assertThat(records).extracting(SearchRecord::text).containsOnly("");
+        assertThat(records).extracting(SearchRecord::heading).containsExactly("", "get()");
     }
 }

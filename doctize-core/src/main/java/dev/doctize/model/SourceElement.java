@@ -2,6 +2,7 @@ package dev.doctize.model;
 
 import dev.doctize.annotations.Doc;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An annotated element together with its raw documentation comment, as extracted at compile time.
@@ -12,6 +13,8 @@ import java.util.List;
  * @param placement where the element asked to be placed
  * @param keywords additional search terms
  * @param members documented members, only for {@link Role#API} types
+ * @param snippets the external files that the {@code {@snippet}} tags of {@code comment} show, read at compile time;
+ *     keyed by {@code file:<path>} or {@code class:<name>}, as the tag names them
  */
 @Doc(group = "Source model", order = 41)
 public record SourceElement(
@@ -20,12 +23,19 @@ public record SourceElement(
         String comment,
         Placement placement,
         List<String> keywords,
-        List<SourceElement> members) {
+        List<SourceElement> members,
+        Map<String, String> snippets) {
+
+    public SourceElement(
+            Role role, Declaration declaration, String comment, Placement placement, List<String> keywords, List<SourceElement> members) {
+        this(role, declaration, comment, placement, keywords, members, Map.of());
+    }
 
     public SourceElement {
         comment = comment == null ? "" : comment;
         placement = placement == null ? Placement.none() : placement;
         keywords = keywords == null ? List.of() : List.copyOf(keywords);
         members = members == null ? List.of() : List.copyOf(members);
+        snippets = snippets == null ? Map.of() : Map.copyOf(snippets);
     }
 }

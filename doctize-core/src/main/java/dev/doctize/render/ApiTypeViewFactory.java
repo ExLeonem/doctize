@@ -67,7 +67,7 @@ final class ApiTypeViewFactory {
         List<MemberGroupView> groups = new ArrayList<>();
         List<TocEntry> toc = new ArrayList<>();
         List<TextChunk> chunks = new ArrayList<>();
-        chunks.add(new TextChunk("", "", introText(declaration, doc)));
+        chunks.add(new TextChunk("", "", introText(declaration, doc), declaration.kind().label()));
 
         for (GroupSpec spec : GROUPS) {
             List<MemberDocs> members = type.members().stream()
@@ -117,7 +117,7 @@ final class ApiTypeViewFactory {
                 returns(declaration, doc),
                 thrown(doc),
                 tags(doc, id + "-"));
-        return new MemberDocs(view, new TextChunk(id, name, memberText(declaration, doc)));
+        return new MemberDocs(view, new TextChunk(id, name, memberText(declaration, doc), declaration.kind().label()));
     }
 
     /** Methods and constructors are shown as {@code name()}, or with their parameter types if the name is overloaded. */

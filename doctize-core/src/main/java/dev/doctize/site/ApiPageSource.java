@@ -51,7 +51,7 @@ public final class ApiPageSource implements PageSource {
                 .filter(member -> settings.includeUndocumented() || !member.comment().isBlank())
                 .toList();
         return new SourceElement(
-                type.role(), type.declaration(), type.comment(), type.placement(), type.keywords(), members);
+                type.role(), type.declaration(), type.comment(), type.placement(), type.keywords(), members, type.snippets());
     }
 
     private Page proseOf(SourceElement element) {
@@ -66,7 +66,7 @@ public final class ApiPageSource implements PageSource {
                 element.placement().order(),
                 "",
                 element.keywords(),
-                new PageContent.Guide(text.body(), ""));
+                new PageContent.Guide(text.body(), "", element.snippets()));
     }
 
     private static String firstNonBlank(String... candidates) {

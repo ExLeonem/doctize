@@ -4,6 +4,11 @@
     <div class="search-input-row">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="search-input" type="text" role="combobox" aria-expanded="true" aria-controls="search-results" aria-autocomplete="list" placeholder="Search the documentation…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <select id="search-scope" class="search-scope" aria-label="Search in">
+        <option value="all">Everywhere</option>
+        <option value="api">API reference</option>
+        <option value="guides">Guides</option>
+      </select>
       <kbd>esc</kbd>
     </div>
     <ul class="search-results" id="search-results" role="listbox"></ul>

@@ -8,6 +8,15 @@ All notable changes to Doctize are documented in this file. The format follows
 
 ### Added
 
+- Full `{@snippet}` support (JEP 413): external examples with `file=` and `class=`, read by the annotation processor from the
+  `snippet-files` directory of the package or the new processor option `doctize.snippetPath`; `region=`; and the markup comments
+  `@highlight`, `@replace`, `@link`, `@start` and `@end`. A missing file or region is a warning. `SourceElement` has `snippets`.
+- Search results are tagged with what they found: `class`, `interface`, `enum`, `record`, `annotation`, `method`, `constructor`,
+  `field`, `enum constant`, or `page` and `section` in guides. A selector in the search dialog limits the search to the API reference
+  or the guides, and is remembered. API pages are found by the names of types and members only: their descriptions are neither
+  searched nor shown. The records of `search-index.js` have `kind` and `area`; `DoctizeSearch.search` takes a `scope`.
+- Navigation in the style of HexDocs: tabs for "Guides" and "API reference" above the sidebar when a site has both, and the
+  headings of the current page below it in the sidebar. Templates get `navTabs`, `navigation[].area` and `items[].headings`.
 - Mermaid diagrams in guides: a fenced code block with the language `mermaid` is drawn in the browser. The Mermaid library (12.0.0, MIT) is
   bundled and copied into a site only if a page has a diagram, so diagrams work offline; a theme needs `diagrams.js`, which the default layout has.
 - The Gradle plugin `dev.doctize` (`doctize-gradle-plugin`). In a Java project it adds the annotations and the annotation

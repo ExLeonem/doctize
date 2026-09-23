@@ -3,11 +3,13 @@
  *
  * Features: camelCase and snake_case aware tokenization ("CacheBuilder" is found by "builder"),
  * prefix matching while typing, typo tolerance, BM25 ranking with field weights, and snippets with
- * highlighted matches. It has no dependencies and works from file:// too.
+ * highlighted matches. Results can be limited to the API reference or to the guides. It has no
+ * dependencies and works from file:// too.
  *
  * Usage:
  *   const index = DoctizeSearch.createIndex(window.DOCTIZE_SEARCH_INDEX.records);
  *   const results = DoctizeSearch.search(index, "cache bulder");
+ *   const methods = DoctizeSearch.search(index, "evict", { scope: "api" });
  */
 (function (root, factory) {
   const api = factory();
@@ -23,6 +25,12 @@
   const MAX_RESULTS = 12;
   const MAX_CHUNKS_PER_PAGE = 3;
   const SNIPPET_LENGTH = 170;
+  const SCOPES = ["api", "guides"];
+
+  /** The area a record belongs to; indexes written before areas existed only had guides and API pages mixed. */
+  function areaOf(record) {
+    return record.area || "guides";
+  }
 
   /** Lower-cased word tokens; identifiers are also split at case changes and underscores. */
   function tokenize(text) {
@@ -162,7 +170,7 @@
     return scores;
   }
 
-  function combine(perToken, requireAll) {
+  function combine(perToken, requireAll, accept) {
     const combined = new Map();
     perToken.forEach((scores) => {
       for (const [id, score] of scores) {
@@ -174,17 +182,18 @@
     });
     const ranked = [];
     for (const [id, entry] of combined) {
+      if (!accept(id)) continue;
       if (requireAll && entry.matched < perToken.length) continue;
       ranked.push({ id, score: entry.score * (entry.matched / perToken.length) });
     }
     return ranked;
   }
 
-  /** Rewards exact phrase matches and titles that equal the query. */
+  /** Rewards exact phrase matches and titles that equal the query; "get()" counts as the name "get". */
   function phraseBonus(doc, query) {
-    const phrase = query.toLowerCase();
+    const phrase = query.toLowerCase().trim();
     const title = (doc.record.title || "").toLowerCase();
-    const heading = (doc.record.heading || "").toLowerCase();
+    const heading = (doc.record.heading || "").toLowerCase().replace(/\(.*\)$/, "");
     let bonus = 0;
     if (heading === phrase || (!heading && title === phrase)) bonus += 30;
     else if (heading.includes(phrase) || (!heading && title.includes(phrase))) bonus += 12;
@@ -223,18 +232,28 @@
     return (from > 0 ? "…" : "") + highlight(text.slice(from, to), tokens) + (to < text.length ? "…" : "");
   }
 
+  /** The areas present in the index, e.g. ["api", "guides"]; a scope selector is only useful with two. */
+  function areas(index) {
+    const present = new Set(index.docs.map((doc) => areaOf(doc.record)));
+    return SCOPES.filter((area) => present.has(area));
+  }
+
   /**
+   * @param options optional: `limit`, the maximum number of results, and `scope`, "api" or "guides"
+   *   to search only there (anything else searches everything)
    * @returns results sorted by relevance; hits on the same page are grouped, the best first:
-   *   { url, title, section, heading, titleHtml, headingHtml, snippetHtml, score, child }
+   *   { url, title, section, heading, kind, area, titleHtml, headingHtml, snippetHtml, score, child }
    */
   function search(index, query, options) {
     const limit = (options && options.limit) || MAX_RESULTS;
+    const scope = options && SCOPES.includes(options.scope) ? options.scope : null;
+    const accept = scope ? (id) => areaOf(index.docs[id].record) === scope : () => true;
     const queryTokens = [...new Set(tokenize(query))];
     if (!queryTokens.length) return [];
 
     const perToken = queryTokens.map((token) => scoreToken(index, token));
-    let ranked = combine(perToken, true);
-    if (ranked.length === 0 && queryTokens.length > 1) ranked = combine(perToken, false);
+    let ranked = combine(perToken, true, accept);
+    if (ranked.length === 0 && queryTokens.length > 1) ranked = combine(perToken, false, accept);
     ranked = ranked.map((hit) => ({ ...hit, score: hit.score + phraseBonus(index.docs[hit.id], query) }));
     ranked.sort((a, b) => b.score - a.score);
 
@@ -256,6 +275,8 @@
           title: r.title,
           section: r.section,
           heading: r.heading,
+          kind: r.kind || (r.heading ? "section" : "page"),
+          area: areaOf(r),
           titleHtml: highlight(r.title, highlightTokens),
           headingHtml: highlight(r.heading || "", highlightTokens),
           snippetHtml: snippet(r.text, highlightTokens),
@@ -268,5 +289,5 @@
     return results.slice(0, limit);
   }
 
-  return { tokenize, createIndex, search };
+  return { tokenize, createIndex, search, areas };
 });

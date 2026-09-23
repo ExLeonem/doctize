@@ -1,4 +1,4 @@
-/* Page behaviour: colour scheme, navigation drawer, code copy buttons, code tabs, table of contents. */
+/* Page behaviour: colour scheme, navigation drawer and tabs, code copy buttons, code tabs, table of contents. */
 (function () {
   "use strict";
 
@@ -29,6 +29,21 @@
   if (navToggle) navToggle.addEventListener("click", () => setNavOpen(!document.body.classList.contains("nav-open")));
   document.querySelectorAll("[data-nav-close]").forEach((el) => el.addEventListener("click", () => setNavOpen(false)));
   document.addEventListener("keydown", (event) => event.key === "Escape" && setNavOpen(false));
+
+  /* ---- Navigation tabs: guides or API reference, like the "Pages" and "Modules" of HexDocs ---- */
+  const sections = [...document.querySelectorAll(".sidebar .nav-section")];
+  const navTabs = document.querySelector(".nav-tabs");
+  const tabButtons = navTabs ? [...navTabs.querySelectorAll("[data-nav-tab]")] : [];
+  function showArea(area) {
+    tabButtons.forEach((button) => button.setAttribute("aria-selected", String(button.dataset.navTab === area)));
+    sections.forEach((section) => (section.hidden = section.dataset.area !== area));
+  }
+  if (tabButtons.length) {
+    navTabs.hidden = false;
+    tabButtons.forEach((button) => button.addEventListener("click", () => showArea(button.dataset.navTab)));
+    const initial = tabButtons.find((button) => button.getAttribute("aria-selected") === "true") || tabButtons[0];
+    showArea(initial.dataset.navTab);
+  }
 
   /* ---- Keep the current page visible in the sidebar ---- */
   const current = document.querySelector(".sidebar a.is-current");

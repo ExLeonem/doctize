@@ -14,6 +14,7 @@ import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -23,9 +24,11 @@ import javax.tools.StandardLocation;
 /**
  * Extracts every element annotated with {@link Doc} or {@link DocPage}, together with its Javadoc,
  * and writes the result to {@code META-INF/doctize/model.json} in the class output. The generator
- * reads that file later; nothing is rendered at compile time.
+ * reads that file later; nothing is rendered at compile time, except that the external files of
+ * {@code {@snippet}} tags are read here.
  */
 @SupportedAnnotationTypes({"dev.doctize.annotations.Doc", "dev.doctize.annotations.DocPage"})
+@SupportedOptions(SnippetFiles.PATH_OPTION)
 public final class DocProcessor extends AbstractProcessor {
 
     private final List<SourceElement> collected = new ArrayList<>();
@@ -39,7 +42,7 @@ public final class DocProcessor extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment environment) {
         super.init(environment);
-        this.factory = new SourceElementFactory(environment.getElementUtils());
+        this.factory = new SourceElementFactory(environment.getElementUtils(), new SnippetFiles(environment));
     }
 
     @Override

@@ -20,11 +20,16 @@ public final class Views {
 
     public record ThemeView(String name, List<String> stylesheets, String accent, List<String> extraCss, List<String> extraJs, Map<String, String> options) {}
 
-    public record NavItemView(String title, String url, boolean current, boolean deprecated) {}
+    /** A page in the navigation; {@code headings} lists the top-level headings of the current page, and is empty for all others. */
+    public record NavItemView(String title, String url, boolean current, boolean deprecated, List<TocItemView> headings) {}
 
     public record NavGroupView(String label, List<NavItemView> items) {}
 
-    public record NavSectionView(String id, String title, String url, boolean current, List<NavGroupView> groups) {}
+    /** A section in the navigation. {@code area} is {@code "api"} for a section of API pages, else {@code "guides"}. */
+    public record NavSectionView(String id, String title, String url, boolean current, List<NavGroupView> groups, String area) {}
+
+    /** A tab above the navigation that shows the sections of one {@code area}; {@code current} if the page is there. */
+    public record NavTabView(String area, String title, boolean current) {}
 
     public record TocItemView(String text, String id, boolean nested) {}
 
@@ -32,7 +37,10 @@ public final class Views {
 
     public record BreadcrumbView(String title, String url) {}
 
-    /** Everything the frame around a page needs. {@code contentHtml} is the already rendered page body. */
+    /**
+     * Everything the frame around a page needs. {@code contentHtml} is the already rendered page body.
+     * {@code navTabs} is empty unless the site has both guides and API pages.
+     */
     public record LayoutView(
             String documentTitle,
             String title,
@@ -48,7 +56,8 @@ public final class Views {
             BreadcrumbView section,
             PagerLinkView previous,
             PagerLinkView next,
-            String canonicalUrl) {}
+            String canonicalUrl,
+            List<NavTabView> navTabs) {}
 
     public record SectionCardView(String title, String description, String url, String pageLabel, List<NavItemView> pages) {}
 

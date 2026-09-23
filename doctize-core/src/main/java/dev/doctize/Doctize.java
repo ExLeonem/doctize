@@ -33,14 +33,14 @@ import java.util.Optional;
 /**
  * Generates a documentation site from the Javadoc of annotated types and from Markdown guides.
  *
- * <pre>{@code
- * Doctize.builder()
+ * {@snippet :
+ * Doctize.builder()                                // @link substring="builder" target="#builder()"
  *         .configFile(Path.of("doctize.yml"))
  *         .model(Path.of("build/classes/java/main"))
  *         .output(Path.of("build/docs"))
  *         .build()
- *         .generate();
- * }</pre>
+ *         .generate();                            // @highlight substring="generate"
+ * }
  *
  * <p>Every setting is optional. Left out, Doctize looks for what a project usually has, relative to the
  * {@linkplain Builder#baseDirectory(Path) base directory}: the output of the annotation processor in

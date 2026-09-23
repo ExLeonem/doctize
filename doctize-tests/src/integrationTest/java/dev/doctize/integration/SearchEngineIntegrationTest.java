@@ -56,7 +56,7 @@ class SearchEngineIntegrationTest {
 
     @Test
     void findsMembersTypesGuidesAndKeywords() throws IOException {
-        Map<String, List<String>> answers = search("subtotal", "basket", "shipped", "install", "pricing rules", "quantity");
+        Map<String, List<String>> answers = search("subtotal", "basket", "shipped", "install", "pricing rules", "add", "pieces");
 
         assertThat(answers.get("subtotal").getFirst()).startsWith("reference/shop.Cart.Line.html#method-subtotal");
         assertThat(answers.get("basket").getFirst()).isEqualTo("reference/shop.Cart.html");
@@ -64,7 +64,8 @@ class SearchEngineIntegrationTest {
         assertThat(answers.get("install")).as("the section headed \"Install\" and the page \"Installation\"")
                 .contains("quick-start/start.html#install").anyMatch(url -> url.startsWith("setup/install.html"));
         assertThat(answers.get("pricing rules").getFirst()).startsWith("guides/pricing-rules.html");
-        assertThat(answers.get("quantity")).anyMatch(url -> url.startsWith("reference/shop.Cart.html#method-add-Item-int"));
+        assertThat(answers.get("add")).anyMatch(url -> url.startsWith("reference/shop.Cart.html#method-add-Item-int"));
+        assertThat(answers.get("pieces")).as("API descriptions are not searched").noneMatch(url -> url.startsWith("reference/"));
     }
 
     @Test

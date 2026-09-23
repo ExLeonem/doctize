@@ -10,6 +10,7 @@ import dev.doctize.render.Views.LayoutView;
 import dev.doctize.render.Views.NavGroupView;
 import dev.doctize.render.Views.NavItemView;
 import dev.doctize.render.Views.NavSectionView;
+import dev.doctize.render.Views.NavTabView;
 import dev.doctize.render.Views.NotFoundView;
 import dev.doctize.render.Views.PagerLinkView;
 import dev.doctize.render.Views.ProjectView;
@@ -22,13 +23,20 @@ import dev.doctize.site.Site;
 import dev.doctize.site.SitePage;
 import dev.doctize.site.Urls;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Optional;
 
 /** Builds the data for the frame around a page: navigation, table of contents, previous/next links. */
 public final class LayoutFactory {
 
     private static final int CARD_PREVIEW_PAGES = 4;
+    /** The areas of the navigation, the same as the scopes of the search. */
+    private static final String API = "api";
+    private static final String GUIDES = "guides";
+    private static final Map<String, String> AREA_TITLES = Map.of(GUIDES, "Guides", API, "API reference");
 
     private final Site site;
     private final ProjectView project;
@@ -63,12 +71,13 @@ public final class LayoutFactory {
                 rendered.html(),
                 project,
                 theme,
-                navigation(page),
+                navigation(page, rendered.toc()),
                 rendered.toc().stream().map(LayoutFactory::tocItem).toList(),
                 breadcrumb(page),
                 index > 0 ? pagerLink(reading.get(index - 1)) : null,
                 index < reading.size() - 1 ? pagerLink(reading.get(index + 1)) : null,
-                baseUrl.map(base -> base.resolve(page.url())).orElse(""));
+                baseUrl.map(base -> base.resolve(page.url())).orElse(""),
+                navTabs(page));
     }
 
     public LayoutView forHome(String contentHtml) {
@@ -82,12 +91,13 @@ public final class LayoutFactory {
                 contentHtml,
                 project,
                 theme,
-                navigation(null),
+                navigation(null, List.of()),
                 List.of(),
                 null,
                 null,
                 null,
-                baseUrl.map(BaseUrl::value).orElse(""));
+                baseUrl.map(BaseUrl::value).orElse(""),
+                navTabs(null));
     }
 
     /** The frame of the 404 page: its links are absolute paths, because the page is shown at any depth. */
@@ -102,12 +112,13 @@ public final class LayoutFactory {
                 contentHtml,
                 project,
                 theme,
-                navigation(null),
+                navigation(null, List.of()),
                 List.of(),
                 null,
                 null,
                 null,
-                "");
+                "",
+                navTabs(null));
     }
 
     public NotFoundView notFoundView(BaseUrl base) {
@@ -120,11 +131,34 @@ public final class LayoutFactory {
         return new HomeView(introHtml, cards, project, startUrl);
     }
 
-    private List<NavSectionView> navigation(SitePage current) {
-        return site.sections().stream().map(section -> navSection(section, current)).toList();
+    private List<NavSectionView> navigation(SitePage current, List<TocEntry> currentToc) {
+        return site.sections().stream().map(section -> navSection(section, current, currentToc)).toList();
     }
 
-    private static NavSectionView navSection(Section section, SitePage current) {
+    /** One tab per area, in the order the areas first appear; none if all sections are in the same area. */
+    private List<NavTabView> navTabs(SitePage current) {
+        Set<String> areas = new LinkedHashSet<>();
+        site.sections().forEach(section -> areas.add(area(section)));
+        if (areas.size() < 2) {
+            return List.of();
+        }
+        String currentArea = current == null
+                ? areas.iterator().next()
+                : site.sections().stream()
+                        .filter(section -> section.id().equals(current.section()))
+                        .map(LayoutFactory::area)
+                        .findFirst()
+                        .orElse(areas.iterator().next());
+        return areas.stream().map(area -> new NavTabView(area, AREA_TITLES.get(area), area.equals(currentArea))).toList();
+    }
+
+    /** A section of API pages only belongs to the API reference; everything else, mixed sections too, to the guides. */
+    private static String area(Section section) {
+        boolean api = section.pages().stream().allMatch(page -> page.page().content() instanceof PageContent.Type);
+        return api ? API : GUIDES;
+    }
+
+    private static NavSectionView navSection(Section section, SitePage current, List<TocEntry> currentToc) {
         List<NavGroupView> groups = new ArrayList<>();
         String label = null;
         List<NavItemView> items = new ArrayList<>();
@@ -135,25 +169,29 @@ public final class LayoutFactory {
                 items.clear();
             }
             label = group;
-            items.add(navItem(page, current));
+            items.add(navItem(page, current, currentToc));
         }
         if (!items.isEmpty()) {
             groups.add(new NavGroupView(label, List.copyOf(items)));
         }
         boolean isCurrent = current != null && current.section().equals(section.id());
-        return new NavSectionView(section.id(), section.title(), section.pages().getFirst().url(), isCurrent, groups);
+        return new NavSectionView(section.id(), section.title(), section.pages().getFirst().url(), isCurrent, groups, area(section));
     }
 
-    private static NavItemView navItem(SitePage page, SitePage current) {
+    private static NavItemView navItem(SitePage page, SitePage current, List<TocEntry> currentToc) {
         boolean deprecated = page.page().content() instanceof PageContent.Type type
                 && type.element().declaration().isDeprecated();
-        return new NavItemView(page.title(), page.url(), page.equals(current), deprecated);
+        boolean isCurrent = page.equals(current);
+        List<TocItemView> headings = isCurrent
+                ? currentToc.stream().filter(entry -> entry.level() == 2).map(LayoutFactory::tocItem).toList()
+                : List.of();
+        return new NavItemView(page.title(), page.url(), isCurrent, deprecated, headings);
     }
 
     private static SectionCardView card(Section section) {
         List<NavItemView> preview = section.pages().stream()
                 .limit(CARD_PREVIEW_PAGES)
-                .map(page -> navItem(page, null))
+                .map(page -> navItem(page, null, List.of()))
                 .toList();
         int count = section.pages().size();
         String label = count == 1 ? "1 page" : count + " pages";

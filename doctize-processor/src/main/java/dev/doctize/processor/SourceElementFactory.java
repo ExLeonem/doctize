@@ -30,31 +30,37 @@ final class SourceElementFactory {
             Doc.class.getName(), DocPage.class.getName(), DocIgnore.class.getName(), Override.class.getName());
 
     private final Elements elements;
+    private final SnippetFiles snippets;
     private final SignatureFormatter signatures = new SignatureFormatter();
 
-    SourceElementFactory(Elements elements) {
+    SourceElementFactory(Elements elements, SnippetFiles snippets) {
         this.elements = elements;
+        this.snippets = snippets;
     }
 
     SourceElement apiType(TypeElement type) {
         Doc doc = type.getAnnotation(Doc.class);
         List<SourceElement> members = doc.members() ? membersOf(type) : List.of();
         Placement placement = new Placement(doc.section(), doc.title(), doc.order(), doc.group());
+        String comment = comment(type);
         return new SourceElement(
                 Role.API,
                 declaration(type, typeKind(type)),
-                comment(type),
+                comment,
                 placement,
                 Arrays.asList(doc.keywords()),
-                members);
+                members,
+                snippets.referencedBy(type, comment));
     }
 
     SourceElement page(Element element) {
         DocPage page = element.getAnnotation(DocPage.class);
         Placement placement = new Placement(page.section(), page.title(), page.order(), page.group());
         ElementKind kind = element instanceof TypeElement type ? typeKind(type) : ElementKind.PACKAGE;
+        String comment = comment(element);
         return new SourceElement(
-                Role.PAGE, declaration(element, kind), comment(element), placement, Arrays.asList(page.keywords()), List.of());
+                Role.PAGE, declaration(element, kind), comment, placement, Arrays.asList(page.keywords()), List.of(),
+                snippets.referencedBy(element, comment));
     }
 
     private List<SourceElement> membersOf(TypeElement type) {
@@ -68,8 +74,10 @@ final class SourceElementFactory {
     }
 
     private SourceElement member(TypeElement owner, Element member, ElementKind kind) {
+        String comment = comment(member);
         return new SourceElement(
-                Role.API, declaration(member, kind, owner), comment(member), Placement.none(), List.of(), List.of());
+                Role.API, declaration(member, kind, owner), comment, Placement.none(), List.of(), List.of(),
+                snippets.referencedBy(member, comment));
     }
 
     private Declaration declaration(Element element, ElementKind kind) {
