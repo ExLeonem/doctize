@@ -30,10 +30,6 @@ dependencies {
     // Runs real Gradle builds that apply the published plugin.
     "systemTestImplementation"(gradleTestKit())
 
-    // Issues the licenses that the tests need. It is the vendor's tool and is not published.
-    "integrationTestImplementation"(project(":doctize-licensing"))
-    "systemTestImplementation"(project(":doctize-licensing"))
-
     "integrationTestImplementation"(project(":doctize-core"))
     "integrationTestImplementation"(project(":doctize-annotations"))
     "integrationTestRuntimeOnly"(project(":doctize-processor"))
@@ -69,11 +65,6 @@ val integrationTestTask = tasks.register<Test>("integrationTest") {
     testClassesDirs = integrationTest.output.classesDirs
     classpath = integrationTest.runtimeClasspath
     shouldRunAfter(tasks.named("test"))
-
-    // The guide "Architecture of Doctize" is checked against the code, so the test reads it.
-    val guides = rootProject.layout.projectDirectory.dir("doctize-docs/docs/architecture")
-    inputs.dir(guides).withPropertyName("architectureGuide")
-    systemProperty("doctize.docs.architecture", guides.asFile.path)
 }
 
 val systemTestTask = tasks.register<Test>("systemTest") {
@@ -90,14 +81,8 @@ val systemTestTask = tasks.register<Test>("systemTest") {
     val stagingRepository = rootProject.layout.buildDirectory.dir("staging-deploy")
     val projectVersion = project.version.toString()
     val signed = providers.gradleProperty("signingInMemoryKey").isPresent
-    // The private key that signs licenses is not in the repository, so the tests of the licensed path only run where it is: on
-    // the machine of the vendor, or in a release build that provides it (-Pdoctize.license.privateKey=<file>).
-    val signingKey = providers.gradleProperty("doctize.license.privateKey").map { file(it) }
-        .orElse(rootProject.layout.projectDirectory.file(".license/vendor-private-key.pem").asFile)
-    inputs.files(signingKey.map { if (it.exists()) listOf(it) else emptyList() }).withPropertyName("licenseSigningKey").optional()
     jvmArgumentProviders.add(CommandLineArgumentProvider {
         listOfNotNull(
-            signingKey.get().takeIf { it.exists() }?.let { "-Ddoctize.license.private-key=$it" },
             "-Ddoctize.cli.home=${cliHome.get().asFile}",
             "-Ddoctize.staging.repository=${stagingRepository.get().asFile}",
             "-Ddoctize.version=$projectVersion",

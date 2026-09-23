@@ -174,10 +174,7 @@ class PublishedArtifactsSystemTest {
         assertThat(entries(jar).stream().filter(e -> e.endsWith(".class")))
                 .as("nothing but annotations, and the names they use")
                 .containsExactlyInAnyOrder(
-                        "dev/doctize/annotations/Doc.class", "dev/doctize/annotations/DocPage.class", "dev/doctize/annotations/DocIgnore.class",
-                        "dev/doctize/annotations/DiagramTypes.class", "dev/doctize/annotations/DiagramIgnore.class",
-                        "dev/doctize/annotations/DiagramInclude.class", "dev/doctize/annotations/StateMachine.class",
-                        "dev/doctize/annotations/Transition.class", "dev/doctize/annotations/Transitions.class", "dev/doctize/annotations/Flow.class");
+                        "dev/doctize/annotations/Doc.class", "dev/doctize/annotations/DocPage.class", "dev/doctize/annotations/DocIgnore.class");
         assertThat(Files.size(jar)).isLessThan(30_000);
     }
 
@@ -219,24 +216,6 @@ class PublishedArtifactsSystemTest {
         if (Boolean.getBoolean("doctize.signed")) {
             assertThat(Path.of(markerPom + ".asc")).as("Central rejects unsigned files, the marker included").exists().isNotEmptyFile();
         }
-    }
-
-    @Test
-    void theCoreJarCarriesThePublicKeyThatChecksLicensesAndNothingThatCanIssueThem() throws Exception {
-        Path core = file("core", ".jar");
-
-        try (JarFile jar = new JarFile(core.toFile())) {
-            String key = new String(jar.getInputStream(jar.getEntry("dev/doctize/license/vendor-public-key.pem")).readAllBytes());
-            assertThat(key).startsWith("-----BEGIN PUBLIC KEY-----").doesNotContain("PRIVATE");
-        }
-        assertThat(entries(core)).contains("dev/doctize/license/LicenseVerifier.class", "dev/doctize/license/License.class",
-                "dev/doctize/architecture/ArchitecturePageSource.class")
-                .noneMatch(entry -> entry.contains("LicenseIssuer") || entry.contains("LicenseTool") || entry.endsWith("private-key.pem"));
-        assertThat(STAGING.resolve("dev/doctize/doctize-licensing")).as("the tool that issues licenses is not published").doesNotExist();
-        for (String module : List.of("annotations", "processor", "core", "cli", "gradle-plugin")) {
-            assertThat(entries(file(module, ".jar"))).as(module).noneMatch(entry -> entry.contains("LicenseIssuer") || entry.contains("licensing/"));
-        }
-        assertThat(dependencies("cli")).as("the command does not need the tool that issues licenses").noneMatch(dependency -> dependency.contains("licensing"));
     }
 
     @Test

@@ -15,8 +15,7 @@ $ doctize generate --help
 Builds the site.
 
 ```console
-doctize generate [-c <config>] [-m <model>]... [--classes <path>]... [-g <dir>] [-t <dir>] [-o <dir>]
-                 [--architecture] [--diagram <kind>]... [--license <file>]
+doctize generate [-c <config>] [-m <model>]... [-g <dir>] [-t <dir>] [-o <dir>]
                  [--github-pages] [--base-url <url>] [--cname <domain>] [--fail-on-warnings] [--serve [--port <n>]]
 ```
 
@@ -24,10 +23,6 @@ doctize generate [-c <config>] [-m <model>]... [--classes <path>]... [-g <dir>] 
 |--------|---------|
 | `-c`, `--config` | The configuration file. By default `./doctize.yml` if it exists. |
 | `-m`, `--model` | Where the annotation processor left its output: a compiled classes directory such as `build/classes/java/main`, a `model.json` file, or a jar. Repeat the option for several modules. |
-| `--classes` | Compiled classes (a directory or a jar) for the [architecture diagrams](../guides/08-architecture-diagrams.md) to analyze, in addition to the `--model` locations. Repeat the option for several. Unlike `--model`, they need no documentation model. |
-| `--architecture` | Generates the architecture diagrams, a Pro feature. Same as `architecture.enabled: true`. |
-| `--diagram` | Switches on a kind of architecture diagram: `overview`, `classes`, `states`, `entities` or `flows`, in any case. Repeat it for several. Implies `--architecture`. |
-| `--license` | The [license](06-licensing.md) file. By default Doctize looks at `DOCTIZE_LICENSE`, `doctize.license` next to the configuration, and `~/.doctize/license`. |
 | `-g`, `--guides` | The directory with Markdown guides. Overrides `guides` in the configuration. |
 | `-t`, `--theme` | A custom theme directory. Overrides `theme.path`. |
 | `-o`, `--output` | The output directory. Default `build/docs`. |
@@ -60,24 +55,6 @@ point `--output` at a directory with other files in it, those files are left alo
 | `0` | The site was generated. |
 | `1` | Doctize could not generate the site: a missing model, invalid configuration, invalid front matter ... The message names the file and the problem. |
 | `2` | Invalid command line usage. |
-
-## license
-
-Shows which [license](06-licensing.md) Doctize uses and what it unlocks.
-
-```console
-doctize license [-c <config>] [--license <file>]
-```
-
-```console
-$ doctize license
-License from the file /work/acme-cache/doctize.license
-Licensed to Acme Corp, valid until 2027-12-31: architecture
-  architecture: unlocked
-```
-
-The exit code is `0` for a valid license, and `1` if there is none or it cannot be used, with the reason. `-c` names the
-configuration file next to which `doctize.license` is looked for.
 
 ## init
 

@@ -116,37 +116,6 @@ class DoctizePluginTest {
     }
 
     @Test
-    void theLicenseIsOnlyUsedWhenTheFileExistsAndTheMapIsOffByDefault() throws IOException {
-        assertThat(task(project("dev.doctize")).getLicense().isPresent()).isFalse();
-        assertThat(task(project("dev.doctize")).getArchitecture().get()).isFalse();
-
-        Files.writeString(directory.resolve("doctize.license"), "# license\n");
-        Project licensed = project("dev.doctize");
-        licensed.getExtensions().getByType(DoctizeExtension.class).getArchitecture().set(true);
-
-        assertThat(task(licensed).getLicense().get().getAsFile()).isEqualTo(directory.resolve("doctize.license").toFile());
-        assertThat(task(licensed).getArchitecture().get()).isTrue();
-    }
-
-    @Test
-    void theLicenseInTheEnvironmentIsOnlyRecordedAsAHash() {
-        String fingerprint = DoctizePlugin.fingerprint("  secret-license-text \n");
-
-        assertThat(fingerprint).hasSize(64).doesNotContain("secret").isEqualTo(DoctizePlugin.fingerprint("secret-license-text"));
-        assertThat(DoctizePlugin.fingerprint("another")).isNotEqualTo(fingerprint);
-    }
-
-    @Test
-    void theKindsOfDiagramReachTheTaskAndAreNoneByDefault() {
-        Project project = project("dev.doctize");
-        assertThat(task(project).getDiagrams().get()).isEmpty();
-
-        project.getExtensions().getByType(DoctizeExtension.class).getDiagrams().set(List.of("classes", "flows"));
-
-        assertThat(task(project).getDiagrams().get()).containsExactly("classes", "flows");
-    }
-
-    @Test
     void theOutputDefaultsToBuildDocs() {
         Project project = project("dev.doctize");
 

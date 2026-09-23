@@ -1,5 +1,0 @@
-project:
-  name: Sample Diagrams
-guides: docs
-architecture:
-  rootPackage: shop

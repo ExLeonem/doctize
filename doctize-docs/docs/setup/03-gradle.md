@@ -105,9 +105,6 @@ doctize {
 | `models` | What the annotation processor produced: class directories, `model.json` files or jars | The main source set |
 | `modules(...)` | Documents other Java projects, see [Several modules](#several-modules) | |
 | `additionalInputs` | Files that the configuration reads, see [Up-to-date checks](#up-to-date-checks) | none |
-| `license` | The [license](06-licensing.md) file, which unlocks licensed features | `doctize.license` in the project, if it exists |
-| `architecture` | Generate the [architecture diagrams](../guides/08-architecture-diagrams.md), a Pro feature | `false` |
-| `diagrams` | The kinds of architecture diagram to switch on: `overview`, `classes`, `states`, `entities`, `flows`. Adds to `doctize.yml` | none |
 | `githubPages` | Prepare the output for [GitHub Pages](05-github-pages.md) | `false` |
 | `baseUrl` | The address the site will be published at | none |
 | `customDomain` | The custom domain of a GitHub Pages site | none |
@@ -128,30 +125,13 @@ $ ./gradlew generateDocs --github-pages --base-url=https://acme.github.io/cache/
 $ ./gradlew generateDocs --fail-on-warnings
 ```
 
-The options are `--github-pages`, `--base-url`, `--custom-domain`, `--architecture`, `--diagram` and `--fail-on-warnings`. Anything else
+The options are `--github-pages`, `--base-url`, `--custom-domain` and `--fail-on-warnings`. Anything else
 can be given as the project property `doctizeArgs`, which is what the workflow of
 [Publishing to GitHub Pages](05-github-pages.md) does:
 
 ```console
 $ ./gradlew generateDocs -PdoctizeArgs="--github-pages --base-url https://acme.github.io/cache/"
 ```
-
-## Licensed features
-
-`architecture = true` (or `--architecture`) adds the [architecture diagrams](../guides/08-architecture-diagrams.md), which need a
-[Pro license](06-licensing.md). `diagrams = listOf("classes", "flows")` (or `--diagram classes`) also switches on kinds of diagram. The plugin hands the tool all the class directories of the project, also those without
-documented types, so the map covers the whole module. Without a usable license the diagrams are skipped with a warning and the build
-goes on; with `failOnWarnings = true` it fails.
-
-```kotlin
-doctize {
-    architecture = true
-    license = layout.projectDirectory.file("licenses/acme.license")   // default: doctize.license in the project
-}
-```
-
-The license is found as described in [Licensing](06-licensing.md), so in CI you can leave `license` alone and provide the secret
-`DOCTIZE_LICENSE`. For several modules, add the modules to `modules(...)`: they are all part of the map.
 
 ## Generate the site with every check
 
@@ -220,8 +200,7 @@ which is the main source set of the project itself. A project that has code of i
 ## Up-to-date checks
 
 Gradle skips `generateDocs` when nothing changed. It looks at the annotation processor's output, the configuration file, the
-guides directory, a custom theme directory, the license file (and a hash of `DOCTIZE_LICENSE`), the settings above and the tool
-itself. A license in `~/.doctize/license` is not looked at: run the task again with `--rerun` after you change it.
+guides directory, a custom theme directory, the settings above and the tool itself.
 
 It cannot look into `doctize.yml`. If the file names further files, such as `theme.extraCss`, or a `theme.path` that you did not
 repeat in the `doctize` block, add them to `additionalInputs` so that changing them regenerates the site:

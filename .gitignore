@@ -3,7 +3,6 @@ build/
 .idea/
 *.iml
 .kotlin/
-# The private key that signs Doctize licenses (see RELEASING.md). Never commit it.
+# A private key used to sign licenses on feature/paid. Never commit it, even though this branch has no code
+# that reads it.
 /.license/
-# A Doctize license belongs to whoever it was issued to. Not to the repository.
-doctize.license

@@ -155,45 +155,6 @@ class GradlePluginSystemTest {
     }
 
     @Test
-    void theArchitectureMapWithoutAUsableLicenseIsSkippedByThePlugin() throws IOException {
-        Files.writeString(project.resolve("garbage.license"), "not a license\n");
-        Files.writeString(project.resolve("build.gradle.kts"), Files.readString(project.resolve("build.gradle.kts")) + """
-
-                doctize {
-                    license = layout.projectDirectory.file("garbage.license")
-                    architecture = true
-                }
-                """);
-
-        BuildResult result = run("generateDocs");
-
-        assertThat(result.task(":generateDocs").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
-        assertThat(result.getOutput()).contains("The architecture diagrams were skipped.", "not a Doctize license");
-        assertThat(project.resolve("build/docs/index.html")).exists();
-        assertThat(project.resolve("build/docs/architecture")).doesNotExist();
-    }
-
-    @Test
-    void withALicenseOfTheVendorThePluginGeneratesTheMapAndRunsAgainWhenTheLicenseChanges() throws IOException {
-        java.security.PrivateKey key = dev.doctize.testing.TestLicenses.vendorKey().orElse(null);
-        org.junit.jupiter.api.Assumptions.assumeTrue(key != null, "the private key of the vendor is not available here");
-        // doctize.license next to the build is found by default.
-        dev.doctize.testing.TestLicenses.writeVendorLicense(project.resolve("doctize.license"), key);
-
-        BuildResult first = run("generateDocs", "--architecture");
-
-        assertThat(first.task(":generateDocs").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
-        assertThat(first.getOutput()).contains("Licensed to Test Licensee");
-        assertThat(Files.readString(project.resolve("build/docs/architecture/architecture.html"))).contains("<pre class=\"mermaid\">flowchart TB");
-        assertThat(run("generateDocs", "--architecture").task(":generateDocs").getOutcome()).isEqualTo(TaskOutcome.UP_TO_DATE);
-
-        Files.writeString(project.resolve("doctize.license"), "not a license\n");
-        BuildResult second = run("generateDocs", "--architecture");
-        assertThat(second.task(":generateDocs").getOutcome()).as("a changed license is an input").isEqualTo(TaskOutcome.SUCCESS);
-        assertThat(second.getOutput()).contains("The architecture diagrams were skipped.");
-    }
-
-    @Test
     void severalModulesAreDocumentedAsOneSiteAndLinkToEachOther() throws IOException {
         Path multi = work.resolve("multi");
         Path shop = SamplesForSystemTests.copy("sample-shop", work.resolve("samples"));

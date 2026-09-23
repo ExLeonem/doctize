@@ -198,7 +198,6 @@ flowchart TD
 
 The Mermaid library is copied into the site, only if a page has a diagram, and a page only loads it if it shows one. So diagrams
 work offline and from the file system, and follow the light and dark mode of the site. With scripts off, the text of the diagram is shown.
-Writing diagrams by hand is free. Drawing them from your code is not: see [Architecture diagrams](08-architecture-diagrams.md).
 
 ## Keep in mind
 

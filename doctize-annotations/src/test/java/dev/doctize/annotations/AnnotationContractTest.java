@@ -70,65 +70,6 @@ class AnnotationContractTest {
         assertThat(defaultOf(DocPage.class, "order")).isEqualTo(100);
     }
 
-    private static final List<Class<? extends java.lang.annotation.Annotation>> DIAGRAM_ANNOTATIONS =
-            List.of(DiagramIgnore.class, DiagramInclude.class, StateMachine.class, Transition.class, Transitions.class, Flow.class);
-
-    @Test
-    void theDiagramAnnotationsAreKeptInTheClassFileBecauseTheDiagramsAreMadeFromClassFiles() {
-        for (Class<? extends java.lang.annotation.Annotation> annotation : DIAGRAM_ANNOTATIONS) {
-            assertThat(annotation.getAnnotation(Retention.class).value()).as(annotation.getSimpleName()).isEqualTo(RetentionPolicy.CLASS);
-            assertThat(annotation.isAnnotationPresent(Documented.class)).as(annotation.getSimpleName()).isTrue();
-        }
-    }
-
-    @Test
-    void ignoreAndIncludeMarkTypesMembersAndPackagesAndCanBeLimitedToSomeDiagrams() throws Exception {
-        for (Class<?> annotation : List.of(DiagramIgnore.class, DiagramInclude.class)) {
-            assertThat(annotation.getAnnotation(Target.class).value()).as(annotation.getSimpleName())
-                    .containsExactlyInAnyOrder(ElementType.TYPE, ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.FIELD, ElementType.PACKAGE);
-            assertThat(attributeNames(annotation)).containsExactly("types");
-            assertThat((String[]) defaultOf(annotation, "types")).as("no types means all diagrams").isEmpty();
-        }
-    }
-
-    @Test
-    void stateMachinesAreEnumsAndTransitionsAreRepeatableOnConstantsAndMethods() throws Exception {
-        assertThat(StateMachine.class.getAnnotation(Target.class).value()).containsExactly(ElementType.TYPE);
-        assertThat(attributeNames(StateMachine.class)).containsExactlyInAnyOrder("name", "initial", "terminal", "description");
-        assertThat(Transition.class.getAnnotation(Target.class).value()).containsExactlyInAnyOrder(ElementType.FIELD, ElementType.METHOD);
-        assertThat(attributeNames(Transition.class)).containsExactlyInAnyOrder("from", "to", "on", "machine");
-        assertThat(Transition.class.getAnnotation(java.lang.annotation.Repeatable.class).value()).isEqualTo(Transitions.class);
-        assertThat(Transitions.class.getMethod("value").getReturnType()).isEqualTo(Transition[].class);
-        assertThat(defaultOf(Transition.class, "machine")).isEqualTo(Void.class);
-        assertThat(Transition.class.getMethod("to").getDefaultValue()).as("the target state is required").isNull();
-    }
-
-    @Test
-    void aFlowStartsAtAMethod() throws Exception {
-        assertThat(Flow.class.getAnnotation(Target.class).value()).containsExactly(ElementType.METHOD);
-        assertThat(attributeNames(Flow.class)).containsExactlyInAnyOrder("name", "description");
-    }
-
-    @Test
-    void theDiagramTypesAreTextSoThatAnnotatedCodeNeverMentionsAnEnumOfThisLibrary() throws Exception {
-        assertThat(DiagramTypes.OVERVIEW).isEqualTo("overview");
-        assertThat(DiagramTypes.CLASSES).isEqualTo("classes");
-        assertThat(DiagramTypes.STATES).isEqualTo("states");
-        assertThat(DiagramTypes.ENTITIES).isEqualTo("entities");
-        assertThat(DiagramTypes.FLOWS).isEqualTo("flows");
-        for (Class<?> annotation : List.of(DiagramIgnore.class, DiagramInclude.class)) {
-            assertThat(annotation.getMethod("types").getReturnType()).as("an enum attribute makes users of a library see compiler warnings")
-                    .isEqualTo(String[].class);
-        }
-        for (Class<? extends java.lang.annotation.Annotation> annotation : DIAGRAM_ANNOTATIONS) {
-            assertThat(attributeTypes(annotation)).as(annotation.getSimpleName()).noneMatch(Class::isEnum);
-        }
-    }
-
-    private static List<Class<?>> attributeTypes(Class<?> annotation) {
-        return Arrays.stream(annotation.getDeclaredMethods()).<Class<?>>map(Method::getReturnType).map(type -> type.isArray() ? type.getComponentType() : type).toList();
-    }
-
     private static List<String> attributeNames(Class<?> annotation) {
         return Arrays.stream(annotation.getDeclaredMethods()).map(Method::getName).toList();
     }

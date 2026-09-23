@@ -44,12 +44,6 @@ hosting:
   githubPages: true
   baseUrl: https://acme.github.io/acme-cache/
   customDomain: docs.acme.dev
-
-architecture:                # a licensed feature
-  enabled: true
-  rootPackage: com.acme.cache
-  depth: 2
-  exclude: ["**.internal"]
 ```
 
 Relative paths (`theme.path`, `extraCss`, `extraJs`, `guides`) are resolved against the directory that
@@ -117,53 +111,3 @@ Where and how the site is published; see [Publishing to GitHub Pages](05-github-
 | `customDomain` | none | A host name such as `docs.acme.dev` for a GitHub Pages site. |
 
 If `baseUrl` is not set, the address is `https://<customDomain>/`, or, with `githubPages`, derived from `project.repository`.
-
-## architecture
-
-The [architecture diagrams](../guides/08-architecture-diagrams.md), a Pro feature, see [Licensing](06-licensing.md), {@link ArchitectureSettings}
-and {@link DiagramSettings}. They are off until `enabled` is `true`.
-
-| Key | Default | Meaning |
-|-----|---------|---------|
-| `enabled` | `false` | Generate the map. |
-| `title`, `section`, `order` | `Architecture`, `Architecture`, `100` | The title of the page, the section it is in and its place there. |
-| `rootPackage` | the package all packages share | Where the map starts. |
-| `depth` | `0` | How many package levels below the root are shown separately; `0` for all. |
-| `include`, `exclude` | all, none | Package patterns to show and to leave out. |
-| `components` | none | Named groups of packages. Each has a `name`, `packages` and an optional `description`. |
-| `layers` | none | Parts or packages from the top of the architecture to the bottom. |
-| `forbid` | none | Dependencies that must not exist. Each has `from`, `to` and an optional `reason`. |
-| `cycles` | `true` | Find and report dependency cycles. |
-| `external` | `false` | List the libraries the code uses. |
-| `libraryDepth` | `2` | How many package levels identify a library. |
-| `minReferences` | `1` | The least weight a dependency needs to be drawn. |
-| `direction` | `top-down` | `top-down` or `left-right`. |
-| `diagrams` | the overview | Which kinds of diagram are drawn, and their options. A kind is `true`, `false` or a mapping. |
-
-`diagrams` has one entry for every kind of diagram:
-
-```yaml
-architecture:
-  enabled: true
-  diagrams:
-    overview: {format: mermaid}        # or svg
-    classes: {groupBy: package, methodVisibility: public}
-    states: true
-    entities: {tableNames: true}
-    flows: {depth: 5}
-```
-
-| Key | Options |
-|-----|---------|
-| `overview` | `enabled`, `format`, `exclude` |
-| `classes` | `enabled`, `title`, `groupBy`, `maxClasses`, `fields`, `fieldVisibility`, `methods`, `methodVisibility`, `constructors`, `accessors`, `stereotypes`, `inheritance`, `associations`, `dependencies`, `neighbours`, `onlyMarked`, `includeTypes`, `excludeTypes`, `direction` |
-| `states` | `enabled`, `title`, `events`, `direction`, `includeTypes`, `excludeTypes` |
-| `entities` | `enabled`, `title`, `columns`, `keys`, `relationships`, `tableNames`, `entityAnnotations`, `idAnnotations`, `onlyMarked`, `includeTypes`, `excludeTypes` |
-| `flows` | `enabled`, `title`, `depth`, `maxNodes`, `implementations`, `constructors`, `accessors`, `numbered`, `direction`, `entryPoints`, `includeTypes`, `excludeTypes` |
-
-The guide describes every option, with examples.
-
-## The license
-
-The license is not part of `doctize.yml`: a license belongs to a person or an organisation, not to a project, and the file is
-often kept out of version control. Doctize finds it as described in [Licensing](06-licensing.md).

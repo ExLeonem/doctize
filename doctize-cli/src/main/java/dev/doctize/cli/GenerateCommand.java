@@ -4,7 +4,6 @@ import com.sun.net.httpserver.SimpleFileServer;
 import dev.doctize.Doctize;
 import dev.doctize.DoctizeException;
 import dev.doctize.GenerationReport;
-import dev.doctize.config.DiagramSettings;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
@@ -27,24 +26,6 @@ final class GenerateCommand implements Callable<Integer> {
             names = {"-m", "--model"},
             description = "Compiled classes directory, model file or jar produced by the annotation processor. Repeatable.")
     private List<Path> models = List.of();
-
-    @Option(
-            names = "--classes",
-            description = "Compiled classes (a directory or jar) for the architecture map to analyze, in addition to the --model locations. Repeatable.")
-    private List<Path> classes = List.of();
-
-    @Option(names = "--architecture", description = "Generate the architecture diagrams, a Pro feature. Same as architecture.enabled in the configuration.")
-    private boolean architecture;
-
-    @Option(
-            names = "--diagram",
-            description = "Switch on a kind of architecture diagram: overview, classes, states, entities or flows. Repeatable. A Pro feature; implies --architecture.")
-    private List<String> diagrams = List.of();
-
-    @Option(
-            names = "--license",
-            description = "The license file. Default: $DOCTIZE_LICENSE, ./doctize.license next to the configuration, then ~/.doctize/license.")
-    private Path license;
 
     @Option(names = {"-g", "--guides"}, description = "Directory with Markdown guides. Overrides the configuration.")
     private Path guides;
@@ -82,7 +63,6 @@ final class GenerateCommand implements Callable<Integer> {
             GenerationReport report = builder().build().generate();
             System.out.printf(
                     "Generated %d pages in %d sections → %s%n", report.pages(), report.sections(), report.outputDirectory());
-            report.license().ifPresent(found -> System.out.println("Licensed to " + found.summary()));
             report.warnings().forEach(warning -> System.err.println("doctize: warning: " + warning));
             if (failOnWarnings && !report.warnings().isEmpty()) {
                 System.err.println("doctize: failing because of " + report.warnings().size() + " warning(s), as requested by --fail-on-warnings");
@@ -105,14 +85,6 @@ final class GenerateCommand implements Callable<Integer> {
             builder.configFile(configFile);
         }
         models.forEach(builder::model);
-        classes.forEach(builder::classes);
-        if (architecture) {
-            builder.architecture();
-        }
-        diagrams.forEach(name -> builder.diagram(DiagramSettings.Kind.of(name)));
-        if (license != null) {
-            builder.license(license);
-        }
         if (guides != null) {
             builder.guides(guides);
         }

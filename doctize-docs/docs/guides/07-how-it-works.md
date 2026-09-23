@@ -1,7 +1,7 @@
 ---
 title: How it works
 description: The pipeline from Javadoc to static site, and why it is built this way.
-keywords: [architecture, pipeline, processor, model, design]
+keywords: [pipeline, processor, model, design]
 ---
 
 # How it works
@@ -9,8 +9,7 @@ keywords: [architecture, pipeline, processor, model, design]
 ![The Doctize pipeline](../images/pipeline.svg)
 
 Doctize is a pipeline of small, separate steps. Knowing them helps when something does not come out as you
-expected, and shows where to plug in your own code. How the code behind the steps is organised, in modules and packages,
-is the subject of [Architecture of Doctize](../architecture/architecture-of-doctize.md).
+expected, and shows where to plug in your own code.
 
 ## 1. Compile: the annotation processor
 
@@ -54,8 +53,6 @@ The generator turns the model, and the guides directory, into {@link Page}s thro
 
 - The API source creates a page per `@Doc` type and a guide page per `@DocPage` element.
 - The guides source creates a page per Markdown file, reading its front matter and folder.
-- With a [Pro license](../setup/06-licensing.md), {@link ArchitecturePageSource} adds the pages of the
-  [architecture diagrams](08-architecture-diagrams.md). It does not use the model: it reads the compiled classes itself.
 - Any {@link PageSource} you register adds more.
 
 A page says *what* it wants (a section, an order, a title) but not *where* it ends up.

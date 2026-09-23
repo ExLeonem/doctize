@@ -48,57 +48,12 @@ Optionally create an environment named `release` with required reviewers: the re
 Set the repository variable `CENTRAL_PUBLISHING_TYPE` to `AUTOMATIC` to publish without pressing a button in the Portal
 (the default, `USER_MANAGED`, keeps the upload in the Portal until you publish it, which is the safer choice for the first releases).
 
-## Licenses
-
-Licenses unlock the advanced features (see the guide *Licensing*). Doctize only contains the **public** key
-(`doctize-core/src/main/resources/dev/doctize/license/vendor-public-key.pem`), so it can check licenses but not issue them. Whoever
-holds the **private** key issues licenses, with the tool in `doctize-licensing`, which is not published.
-
-### The signing key
-
-The key pair that is in the repository was created with `keygen`; its private half is in `.license/vendor-private-key.pem`, which
-is ignored by Git. **Move it to a place only you control** (a password manager, a secret store), and treat losing it like losing the
-release signing key: nobody can issue licenses without it. Anyone who has it can issue licenses.
-
-To create a new pair, for instance because the key leaked (every license issued with the old key stops working, so reissue them):
-
-```console
-$ ./gradlew :doctize-licensing:run --args="keygen --force --out $PWD/.license/vendor-private-key.pem --public-out $PWD/doctize-core/src/main/resources/dev/doctize/license/vendor-public-key.pem"
-```
-
-then release a new version, since the public key is part of `doctize-core`. Users must update Doctize to use the new licenses.
-
-### Issuing a license
-
-```console
-$ ./gradlew :doctize-licensing:run --args="issue --key $PWD/.license/vendor-private-key.pem --licensee 'Acme Corp' --expires 2027-12-31 --feature architecture --out $PWD/acme.license"
-```
-
-`--expires` is the last valid day; leave it out for a license that does not expire; without `--feature`, all features are unlocked.
-The result is one line of text, with comments. Send it to the customer, and keep a record of the `--id` that was printed.
-A license cannot be revoked, only allowed to expire, because Doctize never asks a server. Prefer short validity for that reason.
-
-### The live architecture map in the documentation
-
-The documentation of Doctize includes a live map of its own architecture when the build has a license. To have it on the published
-site, issue a license for yourself (see above; give it an expiry, and renew it before then) and store its text as the repository secret
-`DOCTIZE_LICENSE`. The workflow `.github/workflows/docs.yml` passes it on. Without the secret, or with an expired one that is
-not empty, the site is built without the page; an empty secret is ignored, an unusable one makes the build fail with the reason.
-Locally, put the file at `doctize-docs/doctize.license` (ignored by Git) or in `~/.doctize/license`.
-
-### Third-party code that is shipped
+## Third-party code that is shipped
 
 `doctize-core` bundles Mermaid (`doctize-core/src/main/resources/dev/doctize/diagram/mermaid.min.js`), which is MIT licensed. Its license and
 where it comes from are next to it (`mermaid.LICENSE`, `mermaid.NOTICE.md`). To update it: `npm pack mermaid@<version>`, compare the tarball
 with `npm view mermaid@<version> dist.integrity`, replace the file and the notice, and run the tests. The file is about 5.5 MB; it ends up in
 the jar of `doctize-core` and, only if a page has a diagram, in a generated site.
-
-### Tests that need the key
-
-The tests of the licensed path with the real, installed product (`ArchitectureSystemTest` and parts of `GradlePluginSystemTest`) need a
-license that the real public key accepts. They read the private key from `.license/vendor-private-key.pem`, or from
-`-Pdoctize.license.privateKey=<file>`, and are **skipped** where there is none, such as a build on GitHub Actions. To run them there,
-provide the key as a secret and write it to a file in the workflow. Everything else about licensing is tested with keys made for the tests.
 
 ## Releasing a version
 

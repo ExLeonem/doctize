@@ -28,11 +28,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - id: pages
         uses: actions/configure-pages@v5
-      # With the repository secret DOCTIZE_LICENSE (a license of Doctize, see RELEASING.md) the site also gets the live architecture map.
-      # Without it the secret is empty, and the site is built without that page.
       - name: Generate the documentation
-        env:
-          DOCTIZE_LICENSE: ${{ secrets.DOCTIZE_LICENSE }}
         run: ./gradlew :doctize-docs:generateDocs -PdoctizeArgs="--github-pages --base-url ${{ steps.pages.outputs.base_url }}"
       - uses: actions/upload-pages-artifact@v3
         with:
