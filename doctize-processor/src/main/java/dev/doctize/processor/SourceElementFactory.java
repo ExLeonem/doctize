@@ -30,11 +30,13 @@ final class SourceElementFactory {
             Doc.class.getName(), DocPage.class.getName(), DocIgnore.class.getName(), Override.class.getName());
 
     private final Elements elements;
+    private final SourceFiles sources;
     private final SnippetFiles snippets;
     private final SignatureFormatter signatures = new SignatureFormatter();
 
-    SourceElementFactory(Elements elements, SnippetFiles snippets) {
+    SourceElementFactory(Elements elements, SourceFiles sources, SnippetFiles snippets) {
         this.elements = elements;
+        this.sources = sources;
         this.snippets = snippets;
     }
 
@@ -50,7 +52,8 @@ final class SourceElementFactory {
                 placement,
                 Arrays.asList(doc.keywords()),
                 members,
-                snippets.referencedBy(type, comment));
+                snippets.referencedBy(type, comment),
+                sources.location(type).orElse(null));
     }
 
     SourceElement page(Element element) {
@@ -60,7 +63,8 @@ final class SourceElementFactory {
         String comment = comment(element);
         return new SourceElement(
                 Role.PAGE, declaration(element, kind), comment, placement, Arrays.asList(page.keywords()), List.of(),
-                snippets.referencedBy(element, comment));
+                snippets.referencedBy(element, comment),
+                sources.location(element).orElse(null));
     }
 
     private List<SourceElement> membersOf(TypeElement type) {
@@ -77,7 +81,8 @@ final class SourceElementFactory {
         String comment = comment(member);
         return new SourceElement(
                 Role.API, declaration(member, kind, owner), comment, Placement.none(), List.of(), List.of(),
-                snippets.referencedBy(member, comment));
+                snippets.referencedBy(member, comment),
+                sources.location(member).orElse(null));
     }
 
     private Declaration declaration(Element element, ElementKind kind) {

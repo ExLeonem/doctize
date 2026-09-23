@@ -14,8 +14,8 @@ expected, and shows where to plug in your own code.
 ## 1. Compile: the annotation processor
 
 `DocProcessor` runs inside `javac`. It finds every element annotated with {@link Doc} or {@link DocPage} and
-records what it needs: names, the declaration as source text, parameters, annotations, the **raw** doc comment
-and the placement you asked for. At the end of compilation it writes one file, `META-INF/doctize/model.json`, into
+records what it needs: names, the declaration as source text, parameters, annotations, the **raw** doc comment,
+the placement you asked for, and where the element is declared (the file relative to the Git repository, and the line). At the end of compilation it writes one file, `META-INF/doctize/model.json`, into
 your class output directory. Nothing is rendered at compile time.
 
 ```json title="model.json (abridged)"
@@ -37,7 +37,8 @@ your class output directory. Nothing is rendered at compile time.
       "comment": "A store.\n\n@since 1.0",
       "placement": { "section": "", "title": "", "order": 100, "group": "" },
       "keywords": [],
-      "members": [ /* one element per documented member */ ]
+      "members": [ /* one element per documented member */ ],
+      "location": { "path": "core/src/main/java/com/acme/Store.java", "line": 12 }
     }
   ]
 }

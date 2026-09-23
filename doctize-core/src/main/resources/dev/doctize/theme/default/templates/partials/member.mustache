@@ -2,7 +2,8 @@
           <h3>
             <code class="member-name">{{name}}</code>
             <span class="kind">{{kind}}</span>{{#deprecated}}
-            <span class="kind kind-deprecated">deprecated</span>{{/deprecated}}
+            <span class="kind kind-deprecated">deprecated</span>{{/deprecated}}{{#sourceUrl}}
+            <a class="source-link" href="{{sourceUrl}}" rel="noopener" title="View source" aria-label="View the source of {{name}}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg></a>{{/sourceUrl}}
             <a class="anchor" href="#{{id}}" aria-label="Permalink">#</a>
           </h3>
           <pre class="signature"><code>{{{signatureHtml}}}</code></pre>{{#deprecated}}

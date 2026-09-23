@@ -40,6 +40,7 @@ The frame of every page. Its context is a `LayoutView`.
 |----------|---------|
 | `project.name`, `project.tagline`, `project.version` | as configured |
 | `project.repository`, `project.footer` | as configured; empty if not set, so `{{#project.repository}}` works as a test |
+| `project.github` | `true` if `project.repository` is on github.com, for the right icon |
 
 ### theme
 
@@ -83,10 +84,12 @@ For pages of {@link Doc} types. The context is a `TypeView`:
 | `params` | list of type parameters or record components: `name`, `descriptionHtml` |
 | `tags` | list of `label` and `html`, for `@since`, `@see`, `@apiNote` ... |
 | `groups` | list of member groups: `id`, `title` and `members` |
+| `sourceUrl` | the address of the declaration in the repository; empty if unknown |
 
 A member (in `groups`, rendered by `partials/member`) has `id`, `name`, `kind`, `signatureHtml`, `summaryHtml`,
 `descriptionHtml`, `deprecated`, `params` (`name`, `typeHtml`, `descriptionHtml`), `returns` (`typeHtml`,
-`descriptionHtml`; absent when there is no `@return`), `throwsList` (`typeHtml`, `descriptionHtml`) and `tags`.
+`descriptionHtml`; absent when there is no `@return`), `throwsList` (`typeHtml`, `descriptionHtml`), `tags` and `sourceUrl`
+(empty if unknown).
 
 The groups appear in this order: enum constants, fields, constructors, methods, nested types. Groups and
 members without content are absent.

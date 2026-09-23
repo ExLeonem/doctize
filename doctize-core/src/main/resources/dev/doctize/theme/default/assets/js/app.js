@@ -1,4 +1,4 @@
-/* Page behaviour: colour scheme, navigation drawer and tabs, code copy buttons, code tabs, table of contents. */
+/* Page behaviour: colour scheme, collapsible navigation, navigation drawer and tabs, code copy buttons, code tabs, table of contents. */
 (function () {
   "use strict";
 
@@ -17,6 +17,22 @@
       const next = isDark ? "light" : "dark";
       root.setAttribute("data-theme", next);
       storage.set("doctize-theme", next);
+    });
+  }
+
+  /* ---- Collapsing the navigation (large screens); remembered across pages ---- */
+  const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+  function showSidebarState() {
+    const collapsed = root.classList.contains("sidebar-collapsed");
+    sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
+    sidebarToggle.setAttribute("aria-label", collapsed ? "Show the navigation" : "Hide the navigation");
+  }
+  if (sidebarToggle) {
+    showSidebarState();
+    sidebarToggle.addEventListener("click", () => {
+      const collapsed = root.classList.toggle("sidebar-collapsed");
+      storage.set("doctize-sidebar", collapsed ? "collapsed" : "open");
+      showSidebarState();
     });
   }
 

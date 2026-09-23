@@ -174,4 +174,17 @@ class LayoutFactoryTest {
         assertThat(view.toc()).isEmpty();
         assertThat(factory.notFoundView(base).basePath()).isEqualTo("/docs/");
     }
+
+    @Test
+    void theGitHubIconIsOnlyForRepositoriesOnGitHub() {
+        assertThat(projectFor("https://github.com/acme/cache").github()).isTrue();
+        assertThat(projectFor("https://gitlab.com/acme/cache").github()).isFalse();
+        assertThat(projectFor("").github()).isFalse();
+    }
+
+    private static Views.ProjectView projectFor(String repository) {
+        Site single = siteWithSections(List.of(), guide("only", "Only", "s", "x", ""));
+        Site withRepository = new Site(new dev.doctize.config.ProjectInfo("P", "", "", repository, ""), single.sections(), single.intro());
+        return new LayoutFactory(withRepository, ThemeSettings.defaults(), List.of(), List.of(), List.of(), Optional.empty()).forHome("").project();
+    }
 }

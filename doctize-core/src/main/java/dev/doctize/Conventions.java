@@ -57,28 +57,43 @@ final class Conventions {
                 .flatMap(Conventions::webAddress);
     }
 
+    /**
+     * What the working tree of the directory has checked out, for links to its sources: the branch, or the commit if no
+     * branch is checked out, as in most continuous integration builds.
+     */
+    static Optional<String> revision(Path baseDirectory) {
+        return gitDirectory(baseDirectory.toAbsolutePath().normalize())
+                .flatMap(gitDir -> existing(gitDir.resolve("HEAD")))
+                .map(head -> read(head).strip())
+                .filter(head -> !head.isEmpty())
+                .map(head -> head.startsWith("ref:") ? head.substring(4).strip().replaceFirst("^refs/heads/", "") : head);
+    }
+
     private static Optional<Path> gitConfig(Path directory) {
+        return gitDirectory(directory).flatMap(gitDir -> existing(commonDirectory(gitDir).resolve("config")));
+    }
+
+    /** The Git directory of the working tree; a worktree or submodule has a {@code .git} file that points to it. */
+    private static Optional<Path> gitDirectory(Path directory) {
         for (Path current = directory; current != null; current = current.getParent()) {
             Path git = current.resolve(".git");
             if (Files.isDirectory(git)) {
-                return existing(git.resolve("config"));
+                return Optional.of(git);
             }
             if (Files.isRegularFile(git)) {
-                return linkedGitDirectory(git).flatMap(gitDir -> existing(gitDir.resolve("config")));
+                String content = read(git).strip();
+                return content.startsWith("gitdir:")
+                        ? Optional.of(current.resolve(content.substring("gitdir:".length()).strip()).normalize())
+                        : Optional.empty();
             }
         }
         return Optional.empty();
     }
 
-    /** A worktree or submodule has a {@code .git} file that points to its Git directory; a worktree shares the main one's config. */
-    private static Optional<Path> linkedGitDirectory(Path gitFile) {
-        String content = read(gitFile).strip();
-        if (!content.startsWith("gitdir:")) {
-            return Optional.empty();
-        }
-        Path gitDir = gitFile.getParent().resolve(content.substring("gitdir:".length()).strip()).normalize();
+    /** A worktree shares the configuration of the main working tree. */
+    private static Path commonDirectory(Path gitDir) {
         Path commonDir = gitDir.resolve("commondir");
-        return Optional.of(Files.isRegularFile(commonDir) ? gitDir.resolve(read(commonDir).strip()).normalize() : gitDir);
+        return Files.isRegularFile(commonDir) ? gitDir.resolve(read(commonDir).strip()).normalize() : gitDir;
     }
 
     private static Optional<String> remoteUrl(Path config) {

@@ -59,7 +59,9 @@ Shown in the header, on the home page and in the footer. See {@link ProjectInfo}
 | `name` | the build's project name, else `Documentation` | The name in the top bar, the home page and the browser title. |
 | `tagline` | the build's project description, else empty | One line below the name on the home page. |
 | `version` | the build's project version, else empty | Shown as a badge next to the name. |
-| `repository` | the Git remote `origin`, see below | Adds a repository icon that links here to the top bar. |
+| `repository` | the Git remote `origin`, see below | Adds a repository icon that links here to the top bar: the GitHub logo for a repository on github.com, a generic icon for others. |
+| `footer` | empty | A line of text in the footer of every page. |
+| `sourceUrl` | derived from `repository`, see below | The address of a line in a source file, with `{path}` and `{line}`. API pages link to it. |
 
 The build's project data is what the [Gradle plugin](03-gradle.md) passes (the name of the root project, and the version and
 description of the project), or the `--project-...` options of [`doctize generate`](02-command-line.md). Whatever this file
@@ -69,7 +71,20 @@ Without `repository`, Doctize reads the remote `origin` (or else the first remot
 An address on github.com, gitlab.com, bitbucket.org or codeberg.org is turned into its web address, e.g.
 `git@github.com:acme/cache.git` into `https://github.com/acme/cache`, without any credentials; a remote on another host is
 not published unless you name it here.
-| `footer` | empty | A line of text in the footer of every page. |
+
+### Links to the source
+
+Every API page, and every member on it, has a code icon (`</>`) that opens the line of the source file where it is declared.
+The annotation processor records that line and the path of the file relative to the root of the Git repository. For a
+repository on github.com, gitlab.com, bitbucket.org or codeberg.org, the address is derived from `repository` and the branch
+that is checked out, or the commit when no branch is (as in most CI builds). For another host, or to link to a tag, set it:
+
+```yaml title="doctize.yml"
+project:
+  sourceUrl: https://git.acme.com/cache/-/blob/v2.0/{path}#L{line}
+```
+
+Without a known address, or for sources outside a Git repository, the icons are left out.
 
 ## theme
 

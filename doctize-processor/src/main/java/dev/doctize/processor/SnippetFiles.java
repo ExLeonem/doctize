@@ -1,7 +1,5 @@
 package dev.doctize.processor;
 
-import com.sun.source.util.TreePath;
-import com.sun.source.util.Trees;
 import dev.doctize.javadoc.SnippetTag;
 import java.io.File;
 import java.io.IOException;
@@ -28,12 +26,12 @@ final class SnippetFiles {
     /** Directories with snippet files, separated like a class path; e.g. {@code -Adoctize.snippetPath=src/test/java}. */
     static final String PATH_OPTION = "doctize.snippetPath";
 
-    private final Trees trees;
+    private final SourceFiles sources;
     private final List<Path> path;
     private final Messager messager;
 
-    SnippetFiles(ProcessingEnvironment environment) {
-        this.trees = trees(environment);
+    SnippetFiles(ProcessingEnvironment environment, SourceFiles sources) {
+        this.sources = sources;
         this.messager = environment.getMessager();
         String option = environment.getOptions().getOrDefault(PATH_OPTION, "");
         this.path = Arrays.stream(option.split(File.pathSeparator)).filter(dir -> !dir.isBlank()).map(Path::of).toList();
@@ -69,7 +67,7 @@ final class SnippetFiles {
 
     private Optional<String> read(Element element, String relative) {
         List<Path> candidates = new ArrayList<>();
-        packageDirectory(element).ifPresent(dir -> candidates.add(dir.resolve("snippet-files").resolve(relative)));
+        sources.file(element).map(Path::getParent).ifPresent(dir -> candidates.add(dir.resolve("snippet-files").resolve(relative)));
         path.forEach(dir -> candidates.add(dir.resolve(relative)));
         for (Path candidate : candidates) {
             if (Files.isRegularFile(candidate)) {
@@ -81,27 +79,5 @@ final class SnippetFiles {
             }
         }
         return Optional.empty();
-    }
-
-    /** The directory of the element's source file, if it is a file on disk. */
-    private Optional<Path> packageDirectory(Element element) {
-        if (trees == null) {
-            return Optional.empty();
-        }
-        TreePath tree = trees.getPath(element);
-        if (tree == null) {
-            return Optional.empty();
-        }
-        var uri = tree.getCompilationUnit().getSourceFile().toUri();
-        return "file".equals(uri.getScheme()) ? Optional.ofNullable(Path.of(uri).getParent()) : Optional.empty();
-    }
-
-    /** Only javac has syntax trees; with another compiler, only the snippet path is searched. */
-    private static Trees trees(ProcessingEnvironment environment) {
-        try {
-            return Trees.instance(environment);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 }

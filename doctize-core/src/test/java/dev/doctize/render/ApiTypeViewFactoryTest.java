@@ -14,6 +14,7 @@ import dev.doctize.markdown.TextChunk;
 import dev.doctize.markdown.TocEntry;
 import dev.doctize.model.ElementKind;
 import dev.doctize.model.SourceElement;
+import dev.doctize.model.SourceLocation;
 import dev.doctize.render.Views.MemberGroupView;
 import dev.doctize.render.Views.MemberView;
 import java.util.Optional;
@@ -23,7 +24,11 @@ class ApiTypeViewFactoryTest {
 
     CodeHighlighter highlighter = new CodeHighlighter();
     Fragments fragments = new Fragments(new MarkdownRenderer(highlighter), new InlineTagProcessor(ref -> Optional.empty()), LinkRewriter.identity());
-    ApiTypeViewFactory factory = new ApiTypeViewFactory(fragments, highlighter, name -> name.equals("Known") ? Optional.of("../api/Known.html") : Optional.empty());
+    ApiTypeViewFactory factory = new ApiTypeViewFactory(
+            fragments,
+            highlighter,
+            name -> name.equals("Known") ? Optional.of("../api/Known.html") : Optional.empty(),
+            location -> Optional.of("https://src/" + location.path() + "#L" + location.line()));
 
     private TypeDocs create(SourceElement type) {
         return factory.create(type, "The Title");
@@ -139,5 +144,23 @@ class ApiTypeViewFactoryTest {
         TextChunk run = docs.chunks().get(1);
         assertThat(run.headingId()).isEqualTo("method-run-int");
         assertThat(run.text()).startsWith("Runs fast.").contains("the count").endsWith("public void run(int n)").doesNotContain("<");
+    }
+
+    @Test
+    void typesAndMembersWithALocationLinkToTheirSourceAndOthersDoNot() {
+        SourceElement run = located(method("run", "Runs.", "void"), 12);
+        SourceElement stop = method("stop", "Stops.", "void");
+        SourceElement type = located(type("a.Task", "A task.", run, stop), 3);
+
+        TypeDocs docs = create(type);
+
+        assertThat(docs.view().sourceUrl()).isEqualTo("https://src/a/Task.java#L3");
+        assertThat(docs.view().groups().getFirst().members()).extracting(MemberView::sourceUrl)
+                .containsExactly("https://src/a/Task.java#L12", "");
+    }
+
+    private static SourceElement located(SourceElement element, int line) {
+        return new SourceElement(element.role(), element.declaration(), element.comment(), element.placement(),
+                element.keywords(), element.members(), element.snippets(), new SourceLocation("a/Task.java", line));
     }
 }

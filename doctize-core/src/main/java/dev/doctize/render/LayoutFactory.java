@@ -53,8 +53,13 @@ public final class LayoutFactory {
         ProjectInfo info = site.project();
         this.baseUrl = baseUrl;
         this.site = site;
-        this.project = new ProjectView(info.name(), info.tagline(), info.version(), info.repository(), info.footer());
+        this.project = new ProjectView(
+                info.name(), info.tagline(), info.version(), info.repository(), info.footer(), isGitHub(info.repository()));
         this.theme = new ThemeView(settings.name(), themeCss, settings.accent(), extraCss, extraJs, settings.options());
+    }
+
+    private static boolean isGitHub(String repository) {
+        return repository.matches("(?i)https?://(www\\.)?github\\.com/.*");
     }
 
     public LayoutView forPage(RenderedPage rendered) {

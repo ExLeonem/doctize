@@ -7,6 +7,7 @@ import dev.doctize.model.ElementKind;
 import dev.doctize.model.ModelLocator;
 import dev.doctize.model.Role;
 import dev.doctize.model.SourceElement;
+import dev.doctize.model.SourceLocation;
 import dev.doctize.model.SourceModel;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -314,5 +315,45 @@ class DocProcessorTest {
         SourceElement api = element(model, "demo.Api");
         assertThat(api.snippets()).containsEntry("file:Usage.java", "class Usage { /* usage */ }\n");
         assertThat(api.members().getFirst().snippets()).containsEntry("class:demo.Example", "class Example { /* example */ }\n");
+    }
+
+    @Test
+    void recordsWhereElementsAreDeclaredRelativeToTheGitRepository(@TempDir Path repository) throws IOException {
+        Files.createDirectories(repository.resolve(".git"));
+        Path pkg = Files.createDirectories(repository.resolve("core/src/main/java/demo"));
+        Files.writeString(pkg.resolve("Api.java"), """
+                package demo;
+
+                import dev.doctize.annotations.Doc;
+
+                /** An API. */
+                @Doc
+                public class Api {
+
+                    /** Runs. */
+                    public void run() {}
+                }
+                """);
+        List<JavaFileObject> files = new ArrayList<>();
+        ToolProvider.getSystemJavaCompiler().getStandardFileManager(null, null, null)
+                .getJavaFileObjects(pkg.resolve("Api.java")).forEach(files::add);
+
+        SourceElement api = element(compile(List.of(), files), "demo.Api");
+
+        assertThat(api.location()).isEqualTo(new SourceLocation("core/src/main/java/demo/Api.java", 6));
+        assertThat(api.members().getFirst().location()).isEqualTo(new SourceLocation("core/src/main/java/demo/Api.java", 10));
+    }
+
+    @Test
+    void sourcesOutsideAGitRepositoryHaveNoLocation() throws IOException {
+        SourceModel model = compile(source("demo/Plain.java", """
+                package demo;
+
+                /** Plain. */
+                @dev.doctize.annotations.Doc
+                public class Plain {}
+                """));
+
+        assertThat(element(model, "demo.Plain").location()).isNull();
     }
 }

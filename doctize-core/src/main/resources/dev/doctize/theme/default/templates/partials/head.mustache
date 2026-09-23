@@ -8,10 +8,11 @@
 <meta property="og:title" content="{{documentTitle}}">
 <link rel="icon" href="{{basePath}}assets/img/favicon.svg" type="image/svg+xml">
 <script>
-  /* Apply the stored colour scheme before first paint to avoid a flash. */
+  /* Apply the stored colour scheme and a collapsed navigation before first paint to avoid a flash. */
   try {
     var stored = localStorage.getItem("doctize-theme");
     if (stored === "light" || stored === "dark") document.documentElement.setAttribute("data-theme", stored);
+    if (localStorage.getItem("doctize-sidebar") === "collapsed") document.documentElement.classList.add("sidebar-collapsed");
   } catch (e) {}
 </script>
 <link rel="stylesheet" href="{{basePath}}assets/css/theme.css">

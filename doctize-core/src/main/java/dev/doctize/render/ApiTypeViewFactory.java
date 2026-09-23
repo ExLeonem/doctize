@@ -11,6 +11,7 @@ import dev.doctize.model.Declaration;
 import dev.doctize.model.ElementKind;
 import dev.doctize.model.Parameter;
 import dev.doctize.model.SourceElement;
+import dev.doctize.model.SourceLocation;
 import dev.doctize.model.TypeNames;
 import dev.doctize.render.Views.DeprecationView;
 import dev.doctize.render.Views.MemberGroupView;
@@ -53,12 +54,17 @@ final class ApiTypeViewFactory {
     private final Fragments fragments;
     private final CodeHighlighter highlighter;
     private final Function<String, Optional<String>> typeLinks;
+    private final Function<SourceLocation, Optional<String>> sourceLinks;
 
     ApiTypeViewFactory(
-            Fragments fragments, CodeHighlighter highlighter, Function<String, Optional<String>> typeLinks) {
+            Fragments fragments,
+            CodeHighlighter highlighter,
+            Function<String, Optional<String>> typeLinks,
+            Function<SourceLocation, Optional<String>> sourceLinks) {
         this.fragments = fragments;
         this.highlighter = highlighter;
         this.typeLinks = typeLinks;
+        this.sourceLinks = sourceLinks;
     }
 
     TypeDocs create(SourceElement type, String title) {
@@ -95,7 +101,8 @@ final class ApiTypeViewFactory {
                 deprecation(declaration, doc),
                 parameters(doc),
                 tags(doc, "type-"),
-                groups);
+                groups,
+                sourceUrl(type));
         return new TypeDocs(view, toc, chunks);
     }
 
@@ -116,8 +123,13 @@ final class ApiTypeViewFactory {
                 params,
                 returns(declaration, doc),
                 thrown(doc),
-                tags(doc, id + "-"));
+                tags(doc, id + "-"),
+                sourceUrl(element));
         return new MemberDocs(view, new TextChunk(id, name, memberText(declaration, doc), declaration.kind().label()));
+    }
+
+    private String sourceUrl(SourceElement element) {
+        return element.location() == null ? "" : sourceLinks.apply(element.location()).orElse("");
     }
 
     /** Methods and constructors are shown as {@code name()}, or with their parameter types if the name is overloaded. */

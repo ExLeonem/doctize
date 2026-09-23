@@ -84,6 +84,18 @@ class GradlePluginSystemTest {
     }
 
     @Test
+    void apiPagesLinkToTheLinesOfTheirSourcesInTheRepository() throws IOException {
+        Files.createDirectories(project.resolve(".git"));
+        Files.writeString(project.resolve(".git/HEAD"), "ref: refs/heads/main\n");
+
+        run("generateDocs");
+
+        assertThat(Files.readString(project.resolve("build/docs/reference/shop.Cart.html")))
+                .as("the processor finds the sources although Gradle wraps its environment")
+                .containsPattern("class=\"source-link\" href=\"https://github.com/example/sample-shop/blob/main/java/shop/Cart.java#L\\d+\"");
+    }
+
+    @Test
     void theSiteIsOnlyGeneratedAgainWhenSomethingChanged() throws IOException {
         run("generateDocs");
 

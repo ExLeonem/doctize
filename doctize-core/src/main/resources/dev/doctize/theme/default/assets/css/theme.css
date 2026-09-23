@@ -167,6 +167,8 @@ kbd {
 .icon-btn:hover { color: var(--text); background: var(--bg-subtle); text-decoration: none; }
 
 .nav-toggle { display: none; }
+.sidebar-toggle { margin-left: -6px; }
+.sidebar-collapsed .sidebar-toggle { color: var(--accent); }
 .icon-moon { display: none; }
 :root[data-theme="dark"] .icon-sun { display: none; }
 :root[data-theme="dark"] .icon-moon { display: block; }
@@ -290,6 +292,14 @@ kbd {
 /* ---------- Page header & prose ---------- */
 
 .doc-header { margin-bottom: 28px; }
+.doc-title { display: flex; align-items: center; gap: 12px; }
+.source-link {
+  display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px;
+  color: var(--text-muted); border: 1px solid var(--border); border-radius: 7px;
+}
+.source-link:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); text-decoration: none; }
+.member > h3 .source-link { width: 24px; height: 24px; }
+.member > h3 .source-link svg { width: 14px; height: 14px; }
 .doc-header h1, .hero h1 { margin: 0; font-size: 2.3rem; line-height: 1.2; letter-spacing: -0.02em; }
 .lead { margin: 10px 0 0; font-size: 1.15rem; color: var(--text-muted); }
 .kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); }
@@ -507,12 +517,17 @@ code.type { background: none; border: 0; padding: 0; }
 
 /* ---------- Responsive ---------- */
 
+@media (min-width: 901px) {
+  .sidebar-collapsed .sidebar { display: none; }
+}
+
 @media (max-width: 1180px) {
   .toc { display: none; }
 }
 
 @media (max-width: 900px) {
   .nav-toggle { display: inline-grid; }
+  .sidebar-toggle { display: none; }
   .search-trigger { min-width: 0; padding: 0 10px; }
   .search-trigger-label, .search-shortcut { display: none; }
   .main { padding: 24px 20px 16px; }

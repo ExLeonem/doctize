@@ -106,7 +106,9 @@ public final class Doctize {
             publishGuideAssets(output, guides);
         }
 
-        PageRenderer renderer = new PageRenderer(site, new CodeHighlighter(), templates);
+        ProjectInfo project = config.project();
+        SourceLinks sourceLinks = SourceLinks.of(project.sourceUrl(), project.repository(), Conventions.revision(baseDirectory));
+        PageRenderer renderer = new PageRenderer(site, new CodeHighlighter(), templates, sourceLinks);
         SiteWriter writer = new SiteWriter(
                 site,
                 renderer,

@@ -16,7 +16,8 @@ public final class Views {
 
     private Views() {}
 
-    public record ProjectView(String name, String tagline, String version, String repository, String footer) {}
+    /** {@code github} is true if {@code repository} is on github.com, for the right icon. */
+    public record ProjectView(String name, String tagline, String version, String repository, String footer, boolean github) {}
 
     public record ThemeView(String name, List<String> stylesheets, String accent, List<String> extraCss, List<String> extraJs, Map<String, String> options) {}
 
@@ -78,6 +79,7 @@ public final class Views {
 
     public record ThrowsView(String typeHtml, String descriptionHtml) {}
 
+    /** A member of a type; {@code sourceUrl} is the address of its declaration in the repository, empty if unknown. */
     public record MemberView(
             String id,
             String name,
@@ -89,10 +91,12 @@ public final class Views {
             List<ParamView> params,
             ReturnView returns,
             List<ThrowsView> throwsList,
-            List<TagView> tags) {}
+            List<TagView> tags,
+            String sourceUrl) {}
 
     public record MemberGroupView(String id, String title, List<MemberView> members) {}
 
+    /** The page of a type; {@code sourceUrl} is the address of its declaration in the repository, empty if unknown. */
     public record TypeView(
             String title,
             String name,
@@ -104,5 +108,6 @@ public final class Views {
             DeprecationView deprecated,
             List<ParamView> params,
             List<TagView> tags,
-            List<MemberGroupView> groups) {}
+            List<MemberGroupView> groups,
+            String sourceUrl) {}
 }

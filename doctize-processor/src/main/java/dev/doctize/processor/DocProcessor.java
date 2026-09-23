@@ -42,7 +42,8 @@ public final class DocProcessor extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment environment) {
         super.init(environment);
-        this.factory = new SourceElementFactory(environment.getElementUtils(), new SnippetFiles(environment));
+        SourceFiles sources = new SourceFiles(environment);
+        this.factory = new SourceElementFactory(environment.getElementUtils(), sources, new SnippetFiles(environment, sources));
     }
 
     @Override

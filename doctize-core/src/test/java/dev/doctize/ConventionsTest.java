@@ -79,4 +79,28 @@ class ConventionsTest {
 
         assertThat(Conventions.repository(dir)).isEmpty();
     }
+
+    @Test
+    void theRevisionIsTheCheckedOutBranchOrElseTheCommit() throws IOException {
+        write(".git/HEAD", "ref: refs/heads/feature/search\n");
+        assertThat(Conventions.revision(dir.resolve("module"))).hasValue("feature/search");
+
+        write(".git/HEAD", "3f2a9c1d\n");
+        assertThat(Conventions.revision(dir)).hasValue("3f2a9c1d");
+    }
+
+    @Test
+    void aWorktreeHasItsOwnRevision() throws IOException {
+        write("main/.git/HEAD", "ref: refs/heads/main\n");
+        write("main/.git/worktrees/feature/HEAD", "ref: refs/heads/feature\n");
+        write("main/.git/worktrees/feature/commondir", "../..\n");
+        write("feature/.git", "gitdir: ../main/.git/worktrees/feature\n");
+
+        assertThat(Conventions.revision(dir.resolve("feature"))).hasValue("feature");
+    }
+
+    @Test
+    void outsideARepositoryThereIsNoRevision() {
+        assertThat(Conventions.revision(dir)).isEmpty();
+    }
 }

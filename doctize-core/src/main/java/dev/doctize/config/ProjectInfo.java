@@ -10,12 +10,19 @@ import dev.doctize.annotations.Doc;
  * @param version the released version, may be empty
  * @param repository URL of the source repository, may be empty
  * @param footer text shown in the page footer, may be empty
+ * @param sourceUrl the address of a line in a source file, with the placeholders {@code {path}} (relative to the root of
+ *     the repository) and {@code {line}}, e.g. {@code https://git.acme.com/cache/-/blob/main/{path}#L{line}}; may be
+ *     empty, then it is derived from {@code repository} on GitHub, GitLab, Bitbucket and Codeberg
  */
 @Doc(group = "Configuration", order = 21)
-public record ProjectInfo(String name, String tagline, String version, String repository, String footer) {
+public record ProjectInfo(String name, String tagline, String version, String repository, String footer, String sourceUrl) {
 
     /** The name of a project that has none. */
     public static final String DEFAULT_NAME = "Documentation";
+
+    public ProjectInfo(String name, String tagline, String version, String repository, String footer) {
+        this(name, tagline, version, repository, footer, null);
+    }
 
     public ProjectInfo {
         name = orDefault(name, DEFAULT_NAME);
@@ -23,6 +30,7 @@ public record ProjectInfo(String name, String tagline, String version, String re
         version = orDefault(version, "");
         repository = orDefault(repository, "");
         footer = orDefault(footer, "");
+        sourceUrl = orDefault(sourceUrl, "");
     }
 
     /**
@@ -35,7 +43,8 @@ public record ProjectInfo(String name, String tagline, String version, String re
                 tagline.isBlank() ? fallback.tagline : tagline,
                 version.isBlank() ? fallback.version : version,
                 repository.isBlank() ? fallback.repository : repository,
-                footer.isBlank() ? fallback.footer : footer);
+                footer.isBlank() ? fallback.footer : footer,
+                sourceUrl.isBlank() ? fallback.sourceUrl : sourceUrl);
     }
 
     private static String orDefault(String value, String fallback) {

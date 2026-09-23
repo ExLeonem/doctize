@@ -51,7 +51,7 @@ public final class ApiPageSource implements PageSource {
                 .filter(member -> settings.includeUndocumented() || !member.comment().isBlank())
                 .toList();
         return new SourceElement(
-                type.role(), type.declaration(), type.comment(), type.placement(), type.keywords(), members, type.snippets());
+                type.role(), type.declaration(), type.comment(), type.placement(), type.keywords(), members, type.snippets(), type.location());
     }
 
     private Page proseOf(SourceElement element) {

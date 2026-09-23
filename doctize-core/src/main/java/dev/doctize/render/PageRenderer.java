@@ -11,6 +11,7 @@ import dev.doctize.markdown.RenderedMarkdown;
 import dev.doctize.markdown.TextChunk;
 import dev.doctize.markdown.TocEntry;
 import dev.doctize.model.SourceElement;
+import dev.doctize.model.SourceLocation;
 import dev.doctize.render.Views.GuideView;
 import dev.doctize.site.Page;
 import dev.doctize.site.PageContent;
@@ -37,11 +38,21 @@ public final class PageRenderer {
     private final CodeHighlighter highlighter;
     private final TemplateEngine templates;
     private final TypeIndex types;
+    private final Function<SourceLocation, Optional<String>> sourceLinks;
     private final Map<String, SitePage> pagesBySource = new HashMap<>();
     private final Map<String, SitePage> pagesByUrl = new HashMap<>();
     private final Set<String> warnings = new LinkedHashSet<>();
 
     public PageRenderer(Site site, CodeHighlighter highlighter, TemplateEngine templates) {
+        this(site, highlighter, templates, location -> Optional.empty());
+    }
+
+    /**
+     * @param sourceLinks the address of a declaration in the repository, if there is one; API pages link to it
+     */
+    public PageRenderer(
+            Site site, CodeHighlighter highlighter, TemplateEngine templates, Function<SourceLocation, Optional<String>> sourceLinks) {
+        this.sourceLinks = sourceLinks;
         this.markdown = new MarkdownRenderer(highlighter);
         this.highlighter = highlighter;
         this.templates = templates;
@@ -85,7 +96,7 @@ public final class PageRenderer {
         Fragments fragments = fragmentsFor(page, "", SnippetSource.of(snippetsOf(type.element())));
         Function<String, Optional<String>> typeLinks =
                 name -> types.typeUrl(name).map(url -> Urls.relative(page.url(), url));
-        TypeDocs docs = new ApiTypeViewFactory(fragments, highlighter, typeLinks).create(type.element(), page.title());
+        TypeDocs docs = new ApiTypeViewFactory(fragments, highlighter, typeLinks, sourceLinks).create(type.element(), page.title());
         String summary = truncate(fragments.plain(Summaries.firstSentence(
                 JavadocParser.parse(type.element().comment()).description())));
         return new RenderedPage(page, templates.render("api-type", docs.view()), docs.toc(), docs.chunks(), summary);
