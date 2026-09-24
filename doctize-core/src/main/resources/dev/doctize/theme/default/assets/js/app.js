@@ -35,6 +35,15 @@
       showSidebarState();
     });
   }
+  /* Moves the button clear of the sidebar's scrollbar while the navigation overflows. */
+  const sidebar = document.getElementById("sidebar");
+  if (sidebarToggle && sidebar && "ResizeObserver" in window) {
+    const observer = new ResizeObserver(() => {
+      root.classList.toggle("sidebar-scrolls", sidebar.scrollHeight > sidebar.clientHeight);
+    });
+    observer.observe(sidebar);
+    for (const child of sidebar.children) observer.observe(child);
+  }
 
   /* ---- Navigation drawer (small screens) ---- */
   const navToggle = document.querySelector("[data-nav-toggle]");

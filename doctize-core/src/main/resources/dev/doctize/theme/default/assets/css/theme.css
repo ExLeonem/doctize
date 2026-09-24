@@ -525,13 +525,15 @@ code.type { background: none; border: 0; padding: 0; }
   }
   .sidebar-toggle {
     position: sticky; top: calc(var(--topbar-height) + 20px); z-index: 5;
-    flex: none; display: grid; place-items: center; width: 26px; height: 26px; margin: 20px -22px 0 -4px;
+    flex: none; display: grid; place-items: center; width: 26px; height: 26px; margin: 20px -22px 0 -4px; padding: 0;
     color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
     box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12); cursor: pointer;
     transition: margin 0.25s ease, color 0.15s, border-color 0.15s;
   }
   .sidebar-toggle:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
-  .sidebar-toggle svg { transition: transform 0.25s ease; }
+  .sidebar-toggle svg { display: block; transition: transform 0.25s ease; }
+  /* Keep the button clear of the sidebar's scrollbar. */
+  .sidebar-scrolls .sidebar-toggle { margin-left: 12px; margin-right: -38px; }
   .sidebar-collapsed .sidebar-toggle { margin-left: 10px; margin-right: -36px; }
   .sidebar-collapsed .sidebar-toggle svg { transform: rotate(180deg); }
 }
