@@ -32,4 +32,13 @@ class ProjectInfoTest {
 
         assertThat(project.name()).isEqualTo(ProjectInfo.DEFAULT_NAME);
     }
+
+    @Test
+    void theRepositoryIsHiddenIfEitherSideHidesIt() {
+        ProjectInfo hidden = new ProjectInfo(null, null, null, null, null, null, true);
+
+        assertThat(new ProjectInfo(null, null, null, null, null).orElse(hidden).hideRepository()).isTrue();
+        assertThat(hidden.orElse(fromBuild).hideRepository()).isTrue();
+        assertThat(fromBuild.orElse(fromBuild).hideRepository()).isFalse();
+    }
 }

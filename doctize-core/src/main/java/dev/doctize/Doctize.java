@@ -107,7 +107,9 @@ public final class Doctize {
         }
 
         ProjectInfo project = config.project();
-        SourceLinks sourceLinks = SourceLinks.of(project.sourceUrl(), project.repository(), Conventions.revision(baseDirectory));
+        SourceLinks sourceLinks = project.hideRepository()
+                ? SourceLinks.none()
+                : SourceLinks.of(project.sourceUrl(), project.repository(), Conventions.revision(baseDirectory));
         PageRenderer renderer = new PageRenderer(site, new CodeHighlighter(), templates, sourceLinks);
         SiteWriter writer = new SiteWriter(
                 site,

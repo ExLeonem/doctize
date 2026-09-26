@@ -39,7 +39,7 @@ The frame of every page. Its context is a `LayoutView`.
 | Variable | Meaning |
 |----------|---------|
 | `project.name`, `project.tagline`, `project.version` | as configured |
-| `project.repository`, `project.footer` | as configured; empty if not set, so `{{#project.repository}}` works as a test |
+| `project.repository`, `project.footer` | as configured; empty if not set (or, for the repository, hidden with `hideRepository`), so `{{#project.repository}}` works as a test |
 
 ### theme
 

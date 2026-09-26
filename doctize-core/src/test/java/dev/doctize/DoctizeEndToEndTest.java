@@ -10,6 +10,7 @@ import dev.doctize.model.Parameter;
 import dev.doctize.model.Placement;
 import dev.doctize.model.Role;
 import dev.doctize.model.SourceElement;
+import dev.doctize.model.SourceLocation;
 import dev.doctize.model.SourceModel;
 import dev.doctize.model.SourceModelJson;
 import dev.doctize.site.Page;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -66,7 +68,8 @@ class DoctizeEndToEndTest {
                 Placement.none(), List.of(), List.of());
         SourceElement type = new SourceElement(
                 Role.API, store, "A store of values. Read with {@link #get(String)}.\n\n@since 1.0",
-                new Placement("Reference", "", 5, ""), List.of("storage"), List.of(member));
+                new Placement("Reference", "", 5, ""), List.of("storage"), List.of(member), Map.of(),
+                new SourceLocation("src/main/java/com/acme/Store.java", 12));
         return SourceModel.of(List.of(type));
     }
 
@@ -311,5 +314,34 @@ class DoctizeEndToEndTest {
                 .contains("3.1.0")
                 .contains("Stores values.")
                 .contains("https://github.com/acme/elsewhere").doesNotContain("https://github.com/acme/store\"");
+    }
+
+    @Test
+    void hidingTheRepositoryLeavesOutTheRepositoryIconAndTheLinksToTheSource() throws IOException {
+        Path config = dir.resolve("doctize.yml");
+        String project = "project:\n  repository: https://github.com/acme/store\n  sourceUrl: https://src.acme.dev/{path}#L{line}\n";
+        Files.writeString(config, project);
+        builder().configFile(config).section("Reference").build().generate();
+        assertThat(read("reference/com.acme.Store.html"))
+                .contains("href=\"https://github.com/acme/store\"")
+                .contains("href=\"https://src.acme.dev/src/main/java/com/acme/Store.java#L12\"");
+
+        Files.writeString(config, project + "  hideRepository: true\n");
+        builder().configFile(config).section("Reference").build().generate();
+
+        for (String page : List.of("index.html", "reference/com.acme.Store.html")) {
+            assertThat(read(page)).doesNotContain("github.com/acme/store").doesNotContain("src.acme.dev").doesNotContain("source-link");
+        }
+    }
+
+    @Test
+    void aHiddenRepositoryStillGivesTheAddressOfTheGithubPagesSite() throws IOException {
+        Path config = dir.resolve("doctize.yml");
+        Files.writeString(config, "project:\n  repository: https://github.com/Acme/store\n  hideRepository: true\nhosting:\n  githubPages: true\n");
+
+        GenerationReport report = builder().configFile(config).build().generate();
+
+        assertThat(report.warnings()).isEmpty();
+        assertThat(read("sitemap.xml")).contains("https://acme.github.io/store/");
     }
 }

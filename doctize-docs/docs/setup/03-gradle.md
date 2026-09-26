@@ -18,19 +18,8 @@ The Gradle plugin `dev.doctize` puts Doctize into your build. In a Java project 
 
 ## Apply the plugin
 
-The plugin is published to Maven Central, which Gradle does not search for plugins by default. Add it to the plugin
-repositories in `settings.gradle.kts`:
-
-```kotlin title="settings.gradle.kts"
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-```
-
-Then apply it. Your build needs `mavenCentral()` (or a mirror) as a repository for the dependencies the plugin adds:
+The plugin is published to the Gradle Plugin Portal, where Gradle looks for plugins by default. Your build needs
+`mavenCentral()` (or a mirror) as a repository for the dependencies the plugin adds:
 
 ```kotlin tab="Gradle (Kotlin)"
 plugins {
@@ -56,6 +45,18 @@ repositories {
 
 ```console
 $ ./gradlew generateDocs      # → build/docs/index.html
+```
+
+The plugin is on Maven Central as well. To take it from there, e.g. through a company mirror, add the repository to the
+plugin repositories in `settings.gradle.kts`:
+
+```kotlin title="settings.gradle.kts"
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
 ```
 
 That is all a project needs. A [`doctize.yml`](04-configuration.md) and a `docs` directory of guides are optional, and

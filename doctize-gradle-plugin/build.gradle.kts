@@ -1,5 +1,8 @@
 plugins {
     `java-gradle-plugin`
+    // Publishes the plugin to the Gradle Plugin Portal (`publishPlugins`), so that `id("dev.doctize")` resolves without any
+    // plugin repository in settings.gradle.kts. The same artifacts also go to Maven Central with the other modules.
+    alias(libs.plugins.plugin.publish)
     id("doctize.java-conventions")
     id("doctize.publishing-conventions")
 }
@@ -14,6 +17,9 @@ tasks.withType<JavaCompile>().configureEach { options.release = 17 }
 tasks.jar { manifest.attributes("Automatic-Module-Name" to "dev.doctize.gradle") }
 
 gradlePlugin {
+    // Required by the Plugin Portal; shown on the plugin's page.
+    website = "https://exleonem.github.io/doctize/"
+    vcsUrl = "https://github.com/ExLeonem/doctize"
     plugins {
         register("doctize") {
             id = "dev.doctize"

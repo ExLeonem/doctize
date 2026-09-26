@@ -13,15 +13,18 @@ import dev.doctize.annotations.Doc;
  * @param sourceUrl the address of a line in a source file, with the placeholders {@code {path}} (relative to the root of
  *     the repository) and {@code {line}}, e.g. {@code https://git.acme.com/cache/-/blob/main/{path}#L{line}}; may be
  *     empty, then it is derived from {@code repository} on GitHub, GitLab, Bitbucket and Codeberg
+ * @param hideRepository whether the site leaves out everything that links to the repository: the repository icon in the
+ *     top bar and the links to the source of types and members. The repository is still used where it does not show,
+ *     e.g. to derive the address of a GitHub Pages site
  */
 @Doc(group = "Configuration", order = 21)
-public record ProjectInfo(String name, String tagline, String version, String repository, String footer, String sourceUrl) {
+public record ProjectInfo(String name, String tagline, String version, String repository, String footer, String sourceUrl, boolean hideRepository) {
 
     /** The name of a project that has none. */
     public static final String DEFAULT_NAME = "Documentation";
 
     public ProjectInfo(String name, String tagline, String version, String repository, String footer) {
-        this(name, tagline, version, repository, footer, null);
+        this(name, tagline, version, repository, footer, null, false);
     }
 
     public ProjectInfo {
@@ -44,7 +47,8 @@ public record ProjectInfo(String name, String tagline, String version, String re
                 version.isBlank() ? fallback.version : version,
                 repository.isBlank() ? fallback.repository : repository,
                 footer.isBlank() ? fallback.footer : footer,
-                sourceUrl.isBlank() ? fallback.sourceUrl : sourceUrl);
+                sourceUrl.isBlank() ? fallback.sourceUrl : sourceUrl,
+                hideRepository || fallback.hideRepository);
     }
 
     private static String orDefault(String value, String fallback) {

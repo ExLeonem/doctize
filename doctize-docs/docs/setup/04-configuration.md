@@ -62,6 +62,7 @@ Shown in the header, on the home page and in the footer. See {@link ProjectInfo}
 | `repository` | the Git remote `origin`, see below | Adds a repository icon that links here to the top bar; without a repository there is none. |
 | `footer` | empty | A line of text in the footer of every page. |
 | `sourceUrl` | derived from `repository`, see below | The address of a line in a source file, with `{path}` and `{line}`. API pages link to it. |
+| `hideRepository` | `false` | Leaves out everything that links to the repository: the repository icon and the links to the source. |
 
 The build's project data is what the [Gradle plugin](03-gradle.md) passes (the name of the root project, and the version and
 description of the project), or the `--project-...` options of [`doctize generate`](02-command-line.md). Whatever this file
@@ -86,6 +87,17 @@ project:
 ```
 
 Without a known address, or for sources outside a Git repository, the icons are left out.
+
+### Hiding the repository
+
+For a private repository, or one you do not want to advertise, set `hideRepository`. The site then has neither the
+repository icon in the top bar nor the links to the source, whether `repository` and `sourceUrl` are set or found in the Git
+remote. The repository is still used where it does not show: with `githubPages`, the address of the site is derived from it.
+
+```yaml title="doctize.yml"
+project:
+  hideRepository: true
+```
 
 ## theme
 

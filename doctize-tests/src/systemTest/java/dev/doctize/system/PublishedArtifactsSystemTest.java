@@ -205,6 +205,16 @@ class PublishedArtifactsSystemTest {
     }
 
     @Test
+    void onlyTheLibrariesTheToolAndThePluginArePublishedNotTheDocumentationOrTheExample() throws IOException {
+        try (var artifacts = Files.list(STAGING.resolve("dev/doctize"))) {
+            assertThat(artifacts.map(path -> path.getFileName().toString()))
+                    .containsExactlyInAnyOrder(
+                            "doctize-annotations", "doctize-processor", "doctize-core", "doctize-themes", "doctize-cli",
+                            "doctize-gradle-plugin", "dev.doctize.gradle.plugin");
+        }
+    }
+
+    @Test
     void theMarkerArtifactLetsGradleResolveThePluginById() throws Exception {
         Path directory = STAGING.resolve("dev/doctize/dev.doctize.gradle.plugin/" + VERSION);
         Path markerPom = directory.resolve("dev.doctize.gradle.plugin-" + VERSION + ".pom");

@@ -4,6 +4,7 @@
 # Required repository secrets, see RELEASING.md:
 #   SIGNING_KEY, SIGNING_PASSWORD               the PGP key that signs the artifacts
 #   CENTRAL_PORTAL_USERNAME, CENTRAL_PORTAL_PASSWORD   a user token of the Maven Central Portal
+#   GRADLE_PUBLISH_KEY, GRADLE_PUBLISH_SECRET   an API key of the Gradle Plugin Portal
 name: Release
 
 on:
@@ -58,6 +59,16 @@ jobs:
           CENTRAL_PORTAL_USERNAME: ${{ secrets.CENTRAL_PORTAL_USERNAME }}
           CENTRAL_PORTAL_PASSWORD: ${{ secrets.CENTRAL_PORTAL_PASSWORD }}
         run: ./gradlew publishToCentralPortal -PcentralPublishingType=${{ vars.CENTRAL_PUBLISHING_TYPE || 'USER_MANAGED' }}
+
+      # The Gradle plugin also goes to the Gradle Plugin Portal, where Gradle finds plugins without any configuration.
+      # Unlike an upload to Central, this publishes immediately.
+      - name: Publish the Gradle plugin to the Gradle Plugin Portal
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+        run: ./gradlew :doctize-gradle-plugin:publishPlugins --stacktrace
 
       - name: Create the GitHub release
         env:

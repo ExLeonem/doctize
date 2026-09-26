@@ -18,6 +18,11 @@ final class SourceLinks implements Function<SourceLocation, Optional<String>> {
         this.template = template;
     }
 
+    /** No links at all. */
+    static SourceLinks none() {
+        return new SourceLinks("");
+    }
+
     /**
      * @param sourceUrl the configured address with {@code {path}} and {@code {line}}; wins if set
      * @param repository the web address of the repository

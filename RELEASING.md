@@ -1,7 +1,9 @@
 # Releasing
 
-This document is for maintainers. A release publishes the five modules (`doctize-annotations`, `doctize-processor`,
-`doctize-core`, `doctize-cli`, `doctize-gradle-plugin`) to Maven Central and creates a GitHub release with the command line distribution.
+This document is for maintainers. A release publishes the six modules (`doctize-annotations`, `doctize-processor`,
+`doctize-core`, `doctize-cli`, `doctize-gradle-plugin`, `doctize-themes`) to Maven Central, publishes the Gradle plugin to the
+Gradle Plugin Portal as well, and creates a GitHub release with the command line distribution. `doctize-docs`,
+`doctize-example` and `doctize-tests` are never published (`PublishedArtifactsSystemTest` checks).
 
 ## One-time setup
 
@@ -33,7 +35,14 @@ $ gpg --armor --export-secret-keys <key id>     # the value of SIGNING_KEY
 Central checks signatures against public keyservers, so the public key must be published (`keys.openpgp.org` requires you
 to confirm your e-mail address once).
 
-### 3. Repository secrets
+### 3. A Gradle Plugin Portal account
+
+1. Sign in at <https://plugins.gradle.org/> and open **API Keys** in your account. The key and the secret are
+   `GRADLE_PUBLISH_KEY` and `GRADLE_PUBLISH_SECRET`.
+2. The first publication of the plugin id `dev.doctize` is reviewed by the Gradle team before it goes live, and they may ask
+   you to show that you own `doctize.dev`. Later versions are published without review.
+
+### 4. Repository secrets
 
 In **Settings → Secrets and variables → Actions** add:
 
@@ -43,6 +52,8 @@ In **Settings → Secrets and variables → Actions** add:
 | `SIGNING_PASSWORD` | its passphrase |
 | `CENTRAL_PORTAL_USERNAME` | the token username |
 | `CENTRAL_PORTAL_PASSWORD` | the token password |
+| `GRADLE_PUBLISH_KEY` | the API key of the Gradle Plugin Portal |
+| `GRADLE_PUBLISH_SECRET` | its secret |
 
 Optionally create an environment named `release` with required reviewers: the release job then waits for approval.
 Set the repository variable `CENTRAL_PUBLISHING_TYPE` to `AUTOMATIC` to publish without pressing a button in the Portal
@@ -71,8 +82,8 @@ the jar of `doctize-core` and, only if a page has a diagram, in a generated site
    ```
 
 4. The **Release** workflow verifies that the tag matches `gradle.properties` and that the changelog has a section, runs
-   the build with the signing key (which also runs the checks of the signatures), uploads the bundle to Central and creates
-   the GitHub release.
+   the build with the signing key (which also runs the checks of the signatures), uploads the bundle to Central, publishes
+   the Gradle plugin to the Gradle Plugin Portal and creates the GitHub release.
 5. With `USER_MANAGED` publishing, open <https://central.sonatype.com/publishing/deployments>, check the deployment, and press
    **Publish**. The artifacts appear on Maven Central within about half an hour.
 6. Set `version` in `gradle.properties` to the next planned version so that development builds do not claim the released one.
@@ -87,6 +98,8 @@ Everything up to the upload can be run locally.
 $ ./gradlew centralBundle          # → build/central/doctize-<version>-central-bundle.zip, unsigned
 $ ./gradlew :doctize-tests:systemTest   # inspects the staged artifacts: POM metadata, jars, checksums, a consumer build
 $ ./gradlew publishToMavenLocal    # install into ~/.m2 to try the artifacts in another project
+$ GRADLE_PUBLISH_KEY=... GRADLE_PUBLISH_SECRET=... ./gradlew :doctize-gradle-plugin:publishPlugins --validate-only
+                                   # checks the plugin with the Plugin Portal without publishing it
 ```
 
 To exercise signing without your real key, create a throwaway key in an empty keyring and pass it as a property:

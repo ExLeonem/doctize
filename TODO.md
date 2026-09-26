@@ -21,13 +21,15 @@ marker. What is left is below; the one-time setup steps are described in `RELEAS
   - [ ] The GPG public key is on `keys.openpgp.org`, with the e-mail address confirmed.
   - [ ] The secrets `SIGNING_KEY`, `SIGNING_PASSWORD`, `CENTRAL_PORTAL_USERNAME` and `CENTRAL_PORTAL_PASSWORD` exist.
   - [ ] The `release` environment exists (optionally with required reviewers).
+  - [ ] A Gradle Plugin Portal API key is stored as `GRADLE_PUBLISH_KEY` and `GRADLE_PUBLISH_SECRET`; the first
+        publication of `dev.doctize` waits for a review by the Gradle team.
 
 ## Decide before 0.1.0 (released versions can't be changed)
 
 - [ ] **Java 25 for everything.** `doctize.java-conventions` compiles every module, including `doctize-annotations`,
       with `--release 25`, so anyone who puts `@Doc` on their code has to compile with JDK 25. The annotations could
       target 11 or 17 cheaply; the processor is harder because it depends on `doctize-core`.
-- [ ] **Gradle Plugin Portal.** The plugin is only on Central, so users need
+- [x] **Gradle Plugin Portal.** The plugin is only on Central, so users need
       `pluginManagement { repositories { mavenCentral() } }`. Also publishing via `com.gradle.plugin-publish` would make
       `id("dev.doctize")` work without that.
 - [ ] **Javadoc jar size.** Each javadoc jar is about 4 MB, even for `doctize-themes`, because JDK 25's javadoc bundles
@@ -36,7 +38,6 @@ marker. What is left is below; the one-time setup steps are described in `RELEAS
 ## Small cleanups
 
 - [ ] `RELEASING.md` says "the five modules" and leaves out `doctize-themes`.
-- [ ] `idea.md` (scratch notes) is tracked in git.
 
 ## First release
 

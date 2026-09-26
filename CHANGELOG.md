@@ -20,6 +20,10 @@ All notable changes to Doctize are documented in this file. The format follows
   for GitHub, GitLab, Bitbucket and Codeberg from `project.repository` and the checked-out branch (if the remote has it, else the
   remote's default branch) or commit, or set with the new
   `project.sourceUrl` (`{path}`, `{line}`). Templates get `sourceUrl` on types and members.
+- The Gradle plugin is also published to the Gradle Plugin Portal, so `id("dev.doctize")` resolves without a plugin repository
+  in `settings.gradle.kts`.
+- `project.hideRepository` leaves out everything that links to the repository: the repository icon in the top bar and the
+  links to the source. The repository still gives the address of a GitHub Pages site. `ProjectInfo` has `hideRepository`.
 - A button at the right edge of the sidebar slides the navigation out and back in on large screens; the choice is remembered.
 - Navigation in the style of HexDocs: tabs for "Guides" and "API reference" above the sidebar when a site has both. Templates get
   `navTabs` and `navigation[].area`.
