@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '22'
       # Also validates the Gradle wrapper checksum.
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       # Unit tests, integration tests, system tests (installed CLI + staged artifacts), the strict
       # documentation build, and the version consistency check: everything `check` covers.
       - name: Build
