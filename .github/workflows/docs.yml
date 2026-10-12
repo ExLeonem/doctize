@@ -30,7 +30,7 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Generate the documentation
         run: ./gradlew :doctize-docs:generateDocs -PdoctizeArgs="--github-pages --base-url ${{ steps.pages.outputs.base_url }}"
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: doctize-docs/build/docs
 
