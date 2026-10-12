@@ -1,5 +1,5 @@
 [versions]
-jackson = "2.22.2"
+jackson = "2.22.3"
 commonmark = "0.30.0"
 jmustache = "1.16"
 picocli = "4.7.7"
